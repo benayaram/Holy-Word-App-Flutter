@@ -1,0 +1,99 @@
+Starting a Gradle Daemon, 4 busy and 6 incompatible and 2 stopped Daemons could not be reused, use --status for details
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources
+
+> Task :gradle:compileKotlin
+w: file:///C:/flutter/packages/flutter_tools/gradle/src/main/kotlin/DependencyVersionChecker.kt:194:39 'getter for minSdkVersion: AndroidVersion' is deprecated. Will be removed in v9.0
+w: file:///C:/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:11:37 'ApkVariant' is deprecated. Deprecated in Java
+w: file:///C:/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:628:69 'ApkVariant' is deprecated. Deprecated in Java
+
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:classes
+> Task :gradle:jar
+
+> Configure project :app
+w: file:///E:/Real%20Time%20Projects/Holy%20Word%20App/HOLY%20WORD%20APP%20FLUTTER/holy_word_app/android/app/build.gradle.kts:41:5: 'aaptOptions(AaptOptions.() -> Unit): Unit' is deprecated. Replaced by 
+
+> Task :app:DebugMinSdkCheck
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :app:compileFlutterBuildDebug
+E:\Real Time Projects\Holy Word App\HOLY WORD APP FLUTTER\holy_word_app\l10n.yaml: The argument "synthetic-package" no longer has any effect and should be removed. See http://flutter.dev/to/flutter-gen-deprecation
+
+> Task :app:packJniLibsflutterBuildDebug
+> Task :app_links:preBuild UP-TO-DATE
+> Task :app_links:preDebugBuild UP-TO-DATE
+> Task :app_links:writeDebugAarMetadata UP-TO-DATE
+> Task :audio_session:preBuild UP-TO-DATE
+> Task :audio_session:preDebugBuild UP-TO-DATE
+> Task :audio_session:writeDebugAarMetadata UP-TO-DATE
+> Task :flutter_local_notifications:preBuild UP-TO-DATE
+> Task :flutter_local_notifications:preDebugBuild UP-TO-DATE
+> Task :flutter_local_notifications:writeDebugAarMetadata UP-TO-DATE
+> Task :just_audio:preBuild UP-TO-DATE
+> Task :just_audio:preDebugBuild UP-TO-DATE
+> Task :just_audio:writeDebugAarMetadata UP-TO-DATE
+> Task :path_provider_android:preBuild UP-TO-DATE
+> Task :path_provider_android:preDebugBuild UP-TO-DATE
+> Task :path_provider_android:writeDebugAarMetadata UP-TO-DATE
+> Task :share_plus:preBuild UP-TO-DATE
+> Task :share_plus:preDebugBuild UP-TO-DATE
+> Task :share_plus:writeDebugAarMetadata UP-TO-DATE
+> Task :shared_preferences_android:preBuild UP-TO-DATE
+> Task :shared_preferences_android:preDebugBuild UP-TO-DATE
+> Task :shared_preferences_android:writeDebugAarMetadata UP-TO-DATE
+> Task :sqflite_android:preBuild UP-TO-DATE
+> Task :sqflite_android:preDebugBuild UP-TO-DATE
+> Task :sqflite_android:writeDebugAarMetadata UP-TO-DATE
+> Task :url_launcher_android:preBuild UP-TO-DATE
+> Task :url_launcher_android:preDebugBuild UP-TO-DATE
+> Task :url_launcher_android:writeDebugAarMetadata UP-TO-DATE
+> Task :app:cleanMergeDebugAssets UP-TO-DATE
+> Task :app:mergeDebugShaders UP-TO-DATE
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app_links:mergeDebugShaders UP-TO-DATE
+> Task :app_links:compileDebugShaders NO-SOURCE
+> Task :app_links:generateDebugAssets UP-TO-DATE
+> Task :app_links:mergeDebugAssets UP-TO-DATE
+> Task :audio_session:mergeDebugShaders UP-TO-DATE
+> Task :audio_session:compileDebugShaders NO-SOURCE
+> Task :audio_session:generateDebugAssets UP-TO-DATE
+> Task :audio_session:mergeDebugAssets UP-TO-DATE
+> Task :app:checkDebugAarMetadata FAILED
+> Task :flutter_local_notifications:mergeDebugShaders
+
+[Incubating] Problems report is available at: file:///E:/Real%20Time%20Projects/Holy%20Word%20App/HOLY%20WORD%20APP%20FLUTTER/holy_word_app/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:checkDebugAarMetadata'.
+> A failure occurred while executing com.android.build.gradle.internal.tasks.CheckAarMetadataWorkAction
+   > An issue was found when checking AAR metadata:
+     
+       1.  Dependency ':flutter_local_notifications' requires core library desugaring to be enabled
+           for :app.
+     
+           See https://developer.android.com/studio/write/java8-support.html for more
+           details.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1m 53s
+24 actionable tasks: 8 executed, 16 up-to-date

@@ -1,0 +1,18 @@
+{
+  "appTitle": "Holy Word App",
+  "dailyDevotional": "Daily Devotional",
+  "todaysWord": "Today's Word",
+  "audioDevotional": "Audio Devotional",
+  "prayerReminder": "Prayer Reminder",
+  "dailyPrayer": "Daily Prayer",
+  "settings": "Settings",
+  "language": "Language",
+  "selectLanguage": "Select Language",
+  "english": "English",
+  "telugu": "Telugu",
+  "prayerTime": "Prayer Time",
+  "prayerTimeBody": "It's time for your daily prayer.",
+  "reminderSet": "Reminder set for {time}",
+  "prayerContent": "Lord, thank you for your endless love. Help me to walk in your light today and share your love with others. Amen.",
+  "bible": "Bible"
+}
