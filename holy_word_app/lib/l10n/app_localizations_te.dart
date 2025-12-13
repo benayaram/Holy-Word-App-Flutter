@@ -53,7 +53,8 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
-  String get prayerContent => 'ప్రభువా, మీ అంతులేని ప్రేమకు ధన్యవాదాలు. ఈ రోజు మీ వెలుగులో నడవడానికి మరియు మీ ప్రేమను ఇతరులతో పంచుకోవడానికి నాకు సహాయం చేయండి. ఆమెన్.';
+  String get prayerContent =>
+      'ప్రభువా, మీ అంతులేని ప్రేమకు ధన్యవాదాలు. ఈ రోజు మీ వెలుగులో నడవడానికి మరియు మీ ప్రేమను ఇతరులతో పంచుకోవడానికి నాకు సహాయం చేయండి. ఆమెన్.';
 
   @override
   String get bible => 'బైబిల్';

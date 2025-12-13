@@ -25,6 +25,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (!mounted) return;
 
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     final bool isFirstLaunch = prefs.getBool('is_first_launch') ?? true;
 
     if (isFirstLaunch) {

@@ -13,8 +13,8 @@ class BibleService {
 
   BibleService(this._languageCode);
 
-  String get _dbName => _languageCode == 'te' ? 'bsi_te.db' : 'KJV.db';
-  bool get _isTelugu => _languageCode == 'te';
+  String get _dbName => _languageCode == 'telugu' ? 'bsi_te.db' : 'KJV.db';
+  bool get _isTelugu => _languageCode == 'telugu';
 
   static const List<String> _teluguBooks = [
     "ఆదికాండము",
@@ -85,32 +85,108 @@ class BibleService {
     "ప్రకటన"
   ];
 
+  static const List<String> _englishBooks = [
+    "Genesis",
+    "Exodus",
+    "Leviticus",
+    "Numbers",
+    "Deuteronomy",
+    "Joshua",
+    "Judges",
+    "Ruth",
+    "1 Samuel",
+    "2 Samuel",
+    "1 Kings",
+    "2 Kings",
+    "1 Chronicles",
+    "2 Chronicles",
+    "Ezra",
+    "Nehemiah",
+    "Esther",
+    "Job",
+    "Psalms",
+    "Proverbs",
+    "Ecclesiastes",
+    "Song of Solomon",
+    "Isaiah",
+    "Jeremiah",
+    "Lamentations",
+    "Ezekiel",
+    "Daniel",
+    "Hosea",
+    "Joel",
+    "Amos",
+    "Obadiah",
+    "Jonah",
+    "Micah",
+    "Nahum",
+    "Habakkuk",
+    "Zephaniah",
+    "Haggai",
+    "Zechariah",
+    "Malachi",
+    "Matthew",
+    "Mark",
+    "Luke",
+    "John",
+    "Acts",
+    "Romans",
+    "1 Corinthians",
+    "2 Corinthians",
+    "Galatians",
+    "Ephesians",
+    "Philippians",
+    "Colossians",
+    "1 Thessalonians",
+    "2 Thessalonians",
+    "1 Timothy",
+    "2 Timothy",
+    "Titus",
+    "Philemon",
+    "Hebrews",
+    "James",
+    "1 Peter",
+    "2 Peter",
+    "1 John",
+    "2 John",
+    "3 John",
+    "Jude",
+    "Revelation"
+  ];
+
   Future<List<Map<String, dynamic>>> getBooks() async {
-    if (_isTelugu) {
-      // Return hardcoded list with IDs
-      return List.generate(_teluguBooks.length, (index) {
-        return {
-          'id': index + 1,
-          'name': _teluguBooks[index],
-        };
-      });
-    } else {
-      // English: KJV_books table
-      return await _dbService.query(_dbName, 'KJV_books', orderBy: 'id');
-    }
+    final books = _isTelugu ? _teluguBooks : _englishBooks;
+    return List.generate(books.length, (index) {
+      return {
+        'id': index + 1,
+        'name': books[index],
+      };
+    });
   }
 
   Future<List<int>> getChapters(int bookId) async {
     if (_isTelugu) {
-      if (bookId < 1 || bookId > _teluguBooks.length) return [];
-      final bookName = _teluguBooks[bookId - 1];
-      // Telugu: column 'b' is book name, 'c' is chapter
-      final result = await _dbService.rawQuery(
-        _dbName,
-        'SELECT DISTINCT c FROM verse WHERE b = ? ORDER BY c',
-        [bookName],
-      );
-      return result.map((e) => e['c'] as int).toList();
+      // Telugu DB 'bsi_te.db' uses 'id' schema: 1001001 (Book 1, Chap 1, Verse 1)
+      // Book ID range: bookId * 1000000 to (bookId + 1) * 1000000
+      final startId = bookId * 1000000;
+      final endId = (bookId + 1) * 1000000;
+
+      // Query IDs in the book range
+      final res = await _dbService.rawQuery(
+          _dbName,
+          'SELECT id FROM verse WHERE id >= ? AND id < ?', // 'verse' table found via inspection
+          [startId, endId]);
+
+      // Extract distinct chapters from IDs
+      final chapters = res
+          .map((r) {
+            final id = r['id'] as int;
+            return (id % 1000000) ~/ 1000;
+          })
+          .toSet()
+          .toList();
+      chapters.sort();
+      return chapters;
     } else {
       // English: KJV_verses table
       final result = await _dbService.rawQuery(
@@ -124,25 +200,24 @@ class BibleService {
 
   Future<List<Map<String, dynamic>>> getVerses(int bookId, int chapter) async {
     if (_isTelugu) {
-      if (bookId < 1 || bookId > _teluguBooks.length) return [];
-      final bookName = _teluguBooks[bookId - 1];
-      // Telugu: columns 'b', 'c', 'v', 't'
-      final result = await _dbService.query(
-        _dbName,
-        'verse',
-        where: 'b = ? AND c = ?',
-        whereArgs: [bookName, chapter],
-        orderBy: 'v',
-      );
-      // Map to standard format expected by UI
-      return result
-          .map((e) => {
-                'verse': e['v'],
-                'text': e['t'],
-                'book_id': bookId, // Inject ID related to query
-                'chapter': chapter,
-              })
-          .toList();
+      // ID calculation for specific chapter
+      final startId = bookId * 1000000 + chapter * 1000;
+      final endId = startId + 1000; // Max 999 verses
+
+      final res = await _dbService.rawQuery(
+          _dbName,
+          'SELECT id, t FROM verse WHERE id >= ? AND id < ? ORDER BY id',
+          [startId, endId]);
+
+      return res.map((r) {
+        final id = r['id'] as int;
+        final verseNum = id % 1000;
+        return {
+          'verse': verseNum,
+          'text': r['t'] as String,
+          'telugu_text': r['t'] as String, // For UI consistency
+        };
+      }).toList();
     } else {
       // English: KJV_verses table
       final result = await _dbService.query(
@@ -152,8 +227,6 @@ class BibleService {
         whereArgs: [bookId, chapter],
         orderBy: 'verse',
       );
-      // Standard format from KJV results matches expectation mostly,
-      // but ensure consistency
       return result;
     }
   }
@@ -162,20 +235,24 @@ class BibleService {
     if (_isTelugu) {
       final result = await _dbService.rawQuery(
         _dbName,
-        "SELECT * FROM verse WHERE t LIKE ? LIMIT 20",
+        "SELECT id, t FROM verse WHERE t LIKE ? LIMIT 20",
         ['%$query%'],
       );
-      // Map to standard format
+
       return result.map((e) {
-        // We need to reverse lookup ID from name 'b' if we want to provide book_id
-        final bookName = e['b'] as String;
-        final bookId = _teluguBooks.indexOf(bookName) + 1;
+        final id = e['id'] as int;
+        final bookId = id ~/ 1000000;
+        final chapter = (id % 1000000) ~/ 1000;
+        final verse = id % 1000;
+        final bookName = (bookId >= 1 && bookId <= _teluguBooks.length)
+            ? _teluguBooks[bookId - 1]
+            : 'Unknown';
+
         return {
-          'verse': e['v'],
+          'verse': verse,
           'text': e['t'],
           'book_id': bookId,
-          'chapter': e['c'],
-          // Add book_name for UI convenience if needed
+          'chapter': chapter,
           'book_name': bookName,
         };
       }).toList();
@@ -185,7 +262,6 @@ class BibleService {
         "SELECT v.*, b.name as book_name FROM KJV_verses v JOIN KJV_books b ON v.book_id = b.id WHERE v.text LIKE ? LIMIT 20",
         ['%$query%'],
       );
-      // KJV results now include book_name
       return result;
     }
   }
@@ -202,5 +278,28 @@ class BibleService {
         'SELECT * FROM cross_references WHERE source_book = ? AND source_chapter = ? AND source_verse = ?',
         [teluguBookName, chapter, verse]);
     return refs;
+  }
+
+  // --- User Data Methods ---
+
+  Future<void> saveNote(
+      String reference, String verseText, String noteContent) async {
+    await _dbService.insert('holy_word_user.db', 'notes', {
+      'reference': reference,
+      'verse_text': verseText,
+      'note_content': noteContent,
+      'created_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> saveHighlight(
+      int bookId, int chapter, int verse, int color) async {
+    await _dbService.insert('holy_word_user.db', 'highlights', {
+      'book_id': bookId,
+      'chapter': chapter,
+      'verse': verse,
+      'color': color,
+      'created_at': DateTime.now().toIso8601String(),
+    });
   }
 }

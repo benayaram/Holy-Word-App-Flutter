@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
@@ -21,8 +22,12 @@ class DatabaseService {
   }
 
   Future<Database> _initDatabase(String dbName) async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, dbName);
+    var path = dbName;
+
+    if (!kIsWeb) {
+      final dbPath = await getDatabasesPath();
+      path = join(dbPath, dbName);
+    }
 
     // For user data (notes), we don't copy from assets, we create schema
     if (dbName == 'holy_word_user.db') {
@@ -35,24 +40,41 @@ class DatabaseService {
             reference TEXT NOT NULL,
             note_content TEXT,
             created_at TEXT NOT NULL
-          )
+          );
+          CREATE TABLE highlights (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            book_id INTEGER NOT NULL,
+            chapter INTEGER NOT NULL,
+            verse INTEGER NOT NULL,
+            color INTEGER NOT NULL,
+            created_at TEXT NOT NULL
+          );
         ''');
       });
     }
 
     // For Bible and Cross Refs, copy from assets if not exists
-    final exists = await databaseExists(path);
+    var exists = await databaseExists(path);
 
     if (!exists) {
       try {
-        await Directory(dirname(path)).create(recursive: true);
+        if (!kIsWeb) {
+          // Native: Create directory and copy file
+          await Directory(dirname(path)).create(recursive: true);
+        }
 
-        // Load database from asset and copy
+        // Load database from asset
         ByteData data = await rootBundle.load('assets/database/$dbName');
-        List<int> bytes =
+        Uint8List bytes =
             data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
 
-        await File(path).writeAsBytes(bytes, flush: true);
+        if (kIsWeb) {
+          // Web: Use databaseFactory to write bytes
+          await databaseFactory.writeDatabaseBytes(path, bytes);
+        } else {
+          // Native: Use File API
+          await File(path).writeAsBytes(bytes, flush: true);
+        }
       } catch (e) {
         throw Exception("Error copying database $dbName: $e");
       }
@@ -67,7 +89,9 @@ class DatabaseService {
       List<Object?>? whereArgs,
       String? orderBy,
       int? limit}) async {
-    if (kIsWeb) return [];
+    if (kIsWeb) {
+      // Allow Web Execution
+    }
     final db = await getDatabase(dbName);
     return await db.query(table,
         where: where, whereArgs: whereArgs, orderBy: orderBy, limit: limit);
@@ -76,7 +100,9 @@ class DatabaseService {
   // Raw query method
   Future<List<Map<String, dynamic>>> rawQuery(String dbName, String sql,
       [List<Object?>? arguments]) async {
-    if (kIsWeb) return [];
+    if (kIsWeb) {
+      // Allow Web Execution
+    }
     final db = await getDatabase(dbName);
     return await db.rawQuery(sql, arguments);
   }
@@ -84,7 +110,9 @@ class DatabaseService {
   // Insert method
   Future<int> insert(
       String dbName, String table, Map<String, dynamic> values) async {
-    if (kIsWeb) return 0;
+    if (kIsWeb) {
+      // Allow Web Execution
+    }
     final db = await getDatabase(dbName);
     return await db.insert(table, values);
   }
@@ -92,7 +120,9 @@ class DatabaseService {
   // Delete method
   Future<int> delete(String dbName, String table,
       {String? where, List<Object?>? whereArgs}) async {
-    if (kIsWeb) return 0;
+    if (kIsWeb) {
+      // Allow Web Execution
+    }
     final db = await getDatabase(dbName);
     return await db.delete(table, where: where, whereArgs: whereArgs);
   }

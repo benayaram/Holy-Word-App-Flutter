@@ -10,13 +10,18 @@ import 'features/onboarding/presentation/splash_screen.dart';
 
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize sqflite for Desktop
-  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+  // Initialize sqflite for Desktop and Web
+  if (kIsWeb) {
+    // Web initialization
+    databaseFactory = databaseFactoryFfiWeb;
+  } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    // Desktop initialization
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }

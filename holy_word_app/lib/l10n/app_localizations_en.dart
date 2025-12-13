@@ -53,7 +53,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get prayerContent => 'Lord, thank you for your endless love. Help me to walk in your light today and share your love with others. Amen.';
+  String get prayerContent =>
+      'Lord, thank you for your endless love. Help me to walk in your light today and share your love with others. Amen.';
 
   @override
   String get bible => 'Bible';
