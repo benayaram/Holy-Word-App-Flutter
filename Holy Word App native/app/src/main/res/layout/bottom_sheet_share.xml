@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/share"
+        android:textAppearance="@style/TextAppearance.HolyWordApp.Headline6"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:gravity="center" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/copy_text_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:text="@string/copy_text"
+        android:textSize="16sp"
+        android:textColor="@color/text_primary"
+        android:backgroundTint="@color/background_card"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/ic_content_copy"
+        app:iconTint="@color/primary"
+        app:iconSize="20dp"
+        app:iconGravity="textStart" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/share_text_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:text="@string/share_text"
+        android:textSize="16sp"
+        android:textColor="@color/text_primary"
+        android:backgroundTint="@color/background_card"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/ic_share"
+        app:iconTint="@color/primary"
+        app:iconSize="20dp"
+        app:iconGravity="textStart" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/share_image_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/share_image"
+        android:textSize="16sp"
+        android:textColor="@color/text_primary"
+        android:backgroundTint="@color/background_card"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/ic_image"
+        app:iconTint="@color/primary"
+        app:iconSize="20dp"
+        app:iconGravity="textStart" />
+
+</LinearLayout>
+

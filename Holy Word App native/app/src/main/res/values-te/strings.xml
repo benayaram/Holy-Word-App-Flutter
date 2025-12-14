@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">పవిత్ర వాక్యం</string>
+    
+    <!-- Splash -->
+    <string name="app_tagline_text">మీ రోజువారీ ఆధ్యాత్మిక సహచరి</string>
+    <string name="loading_spiritual_journey">మీ ఆధ్యాత్మిక ప్రయాణాన్ని లోడ్ చేస్తున్నాం...</string>
+    <string name="version_1_0">వెర్షన్ 1.0</string>
+    <string name="copyright_2025">© 2025 హోలీ వర్డ్ యాప్</string>
+    
+    <!-- Onboarding -->
+    <string name="onboarding_language_title">స్వాగతం</string>
+    <string name="onboarding_language_description">మీ భాషను ఎంచుకోండి.</string>
+    <string name="onboarding_welcome_title">హోలీ వర్డ్‌కు స్వాగతం</string>
+    <string name="onboarding_welcome_description">మీ రోజువారీ ఆధ్యాత్మిక ప్రేరణకు మూలం.</string>
+    <string name="onboarding_video_title">ఇది ఎలా పనిచేస్తుందో చూడండి</string>
+    <string name="onboarding_video_description">అన్ని ఫీచర్ల గురించి తెలుసుకోవడానికి ఈ చిన్న వీడియోను చూడండి.</string>
+    <string name="onboarding_ready_title">ప్రారంభించడానికి సిద్ధమా?</string>
+    <string name="onboarding_ready_description">మీ విశ్వాస ప్రయాణం ఇప్పుడు మొదలవుతుంది.</string>
+    <string name="play_video">వీడియోను ప్లే చేయండి</string>
+    <string name="continue_text">కొనసాగించు</string>
+    <string name="skip_text">దాటవేయండి</string>
+    <string name="start_dashboard">ప్రారంభించండి</string>
+    
+    <!-- Language Options -->
+    <string name="language_english">English</string>
+    <string name="language_telugu">తెలుగు</string>
+    
+    <!-- Admin Dashboard -->
+    <string name="admin_dashboard_title">ఇది అడ్మిన్ డాష్‌బోర్డ్</string>
+    
+    <!-- Authentication -->
+    <string name="login">లాగిన్</string>
+    <string name="register">నమోదు</string>
+    <string name="email">ఇమెయిల్</string>
+    <string name="password">పాస్‌వర్డ్</string>
+    <string name="confirm_password">పాస్‌వర్డ్‌ను నిర్ధారించండి</string>
+    <string name="forgot_password">పాస్‌వర్డ్ మర్చిపోయారా?</string>
+    <string name="login_success">లాగిన్ విజయవంతం</string>
+    <string name="register_success">నమోదు విజయవంతం</string>
+    <string name="logout">లాగ్‌అవుట్</string>
+    <string name="welcome_message">పవిత్ర వాక్యానికి స్వాగతం</string>
+    <string name="enter_email">మీ ఇమెయిల్‌ను నమోదు చేయండి</string>
+    <string name="enter_password">మీ పాస్‌వర్డ్‌ను నమోదు చేయండి</string>
+    <string name="password_mismatch">పాస్‌వర్డ్‌లు సరిపోలడం లేదు</string>
+    <string name="invalid_email">చెల్లని ఇమెయిల్ ఫార్మాట్</string>
+    <string name="password_too_short">పాస్‌వర్డ్ కనీసం 6 అక్షరాలుగా ఉండాలి</string>
+    
+    <!-- Navigation -->
+    <string name="nav_bible">బైబిల్</string>
+    <string name="nav_songs">పాటలు</string>
+    <string name="nav_sermons">ఉపన్యాసాలు</string>
+    <string name="nav_daily_verse">రోజువారీ వాక్యం</string>
+    <string name="nav_reading_plans">చదవడం ప్రణాళికలు</string>
+    <string name="nav_bible_project">బైబిల్ ప్రాజెక్ట్</string>
+    <string name="nav_prayer_wall">ప్రార్థన గోడ</string>
+    <string name="nav_profile">ప్రొఫైల్</string>
+    <string name="nav_admin">అడ్మిన్</string>
+    <string name="nav_live_stream">లైవ్ స్ట్రీమ్</string>
+    
+    <!-- Common -->
+    <string name="loading">లోడ్ అవుతోంది...</string>
+    <string name="error_occurred">ఒక లోపం సంభవించింది</string>
+    <string name="retry">మళ్లీ ప్రయత్నించండి</string>
+    <string name="cancel">రద్దు చేయండి</string>
+    <string name="ok">సరే</string>
+    <string name="yes">అవును</string>
+    <string name="no">కాదు</string>
+    <string name="delete">తొలగించండి</string>
+    <string name="edit">సవరించండి</string>
+    <string name="save">సేవ్ చేయండి</string>
+    <string name="back">వెనుకకు</string>
+    <string name="next">తదుపరి</string>
+    <string name="previous">మునుపటి</string>
+    <string name="done">పూర్తి</string>
+    <string name="settings">సెట్టింగ్‌లు</string>
+    <string name="about">గురించి</string>
+    <string name="version">వెర్షన్ %1$s</string>
+    <string name="privacy_policy">గోప్యతా విధానం</string>
+    <string name="terms_of_service">సేవా నిబంధనలు</string>
+    <string name="contact_us">మమ్మల్ని సంప్రదించండి</string>
+    <string name="rate_app">యాప్‌ను రేట్ చేయండి</string>
+    <string name="share_app">యాప్‌ను షేర్ చేయండి</string>
+    
+    <!-- Bible Study Tools -->
+    <string name="bible_study_tools_title">బైబిల్ అధ్యయన సాధనాలు</string>
+    <string name="bible_study_tools_subtitle">శక్తివంతమైన అధ్యయన సాధనాలతో దేవుని వాక్యాన్ని అన్వేషించండి</string>
+    
+    <!-- Bible Card -->
+    <string name="bible_title">బైబిల్</string>
+    <string name="bible_description">వచనం వారీగా నావిగేషన్‌తో పూర్తి పవిత్ర బైబిల్‌ను చదవండి మరియు అధ్యయనం చేయండి</string>
+    <string name="open_bible">బైబిల్‌ను తెరవండి</string>
+    
+    <!-- Cross References Card -->
+    <string name="cross_references_title">క్రాస్ రిఫరెన్స్‌లు</string>
+    <string name="cross_references_description">మీ అధ్యయనంతో అనుసంధానించే సంబంధిత వచనాలు మరియు భాగాలను కనుగొనండి</string>
+    <string name="find_references">రిఫరెన్స్‌లను కనుగొనండి</string>
+    
+    <!-- Audio Bible Card -->
+    <string name="audio_bible_title">ఆడియో బైబిల్</string>
+    <string name="audio_bible_description">తెలుగు మరియు ఇంగ్లీష్‌లో అధిక నాణ్యత ఆడియోతో దేవుని వాక్యాన్ని వినండి</string>
+    <string name="listen_now">ఇప్పుడే వినండి</string>
+    <string name="audio_bible">ఆడియో బైబిల్</string>
+    
+    <!-- Powerful Search Card -->
+    <string name="powerful_search_title">శక్తివంతమైన శోధన</string>
+    <string name="powerful_search_description">బహుళ బైబిల్ వెర్షన్‌లు మరియు అనువాదాలలో శోధించండి</string>
+    <string name="search_now">ఇప్పుడే శోధించండి</string>
+    
+    <!-- Bible Dictionary Card -->
+    <string name="bible_dictionary_title">బైబిల్ నిఘంటువు</string>
+    <string name="bible_dictionary_description">సమగ్ర నిర్వచనాలతో తెలుగు బైబిల్ నిఘంటువును అన్వేషించండి</string>
+    <string name="open_dictionary">నిఘంటువును తెరవండి</string>
+    
+    <!-- Cross References Activity -->
+    <string name="cross_references">క్రాస్ రిఫరెన్స్‌లు</string>
+    <string name="book">పుస్తకం</string>
+    <string name="chapter">అధ్యాయం</string>
+    <string name="verse">వచనం</string>
+    <string name="find_cross_references">క్రాస్ రిఫరెన్స్‌లను కనుగొనండి</string>
+    <string name="en_te">EN/TE</string>
+    <string name="no_cross_references_found">క్రాస్ రిఫరెన్స్‌లు కనుగొనబడలేదు</string>
+    <string name="cross_references_found">క్రాస్ రిఫరెన్స్‌లు కనుగొనబడ్డాయి:</string>
+    
+    <!-- Admin Dashboard -->
+    <string name="welcome_to_admin_dashboard">అడ్మిన్ డాష్‌బోర్డ్‌కు స్వాగతం</string>
+    <string name="admin_features">అడ్మిన్ ఫీచర్లు</string>
+    <string name="admin_features_list">• వినియోగదారుల నిర్వహణ\n• కంటెంట్ నిర్వహణ\n• అనలిటిక్స్ డాష్‌బోర్డ్\n• సిస్టమ్ సెట్టింగ్‌లు</string>
+    
+    <!-- User Dashboard -->
+    <string name="holy_word_app">పవిత్ర వాక్య యాప్</string>
+    <string name="click_for_admin_login">అడ్మిన్ లాగిన్ కోసం క్లిక్ చేయండి</string>
+    
+    <!-- Admin Login -->
+    <string name="admin_login">అడ్మిన్ లాగిన్</string>
+    <string name="enter_admin_credentials">మీ అడ్మిన్ ఆధారాలను నమోదు చేయండి</string>
+    <string name="back_to_user_dashboard">← వినియోగదారు డాష్‌బోర్డ్‌కు తిరిగి</string>
+    
+    <!-- Bible Activity -->
+    <string name="te">తె</string>
+    <string name="highlight">హైలైట్</string>
+    <string name="share_text">టెక్స్ట్ షేర్ చేయండి</string>
+    <string name="copy">కాపీ</string>
+    <string name="cross_ref">క్రాస్ రెఫ్</string>
+    <string name="time_placeholder">00:00</string>
+    
+    <!-- Audio Bible Activity -->
+    <string name="listen_to_word_of_god">దేవుని వాక్యాన్ని వినండి</string>
+    <string name="language_selection">భాష ఎంపిక</string>
+    <string name="current_language">ప్రస్తుత భాష:</string>
+    <string name="en">EN</string>
+    <string name="select_book_and_chapter">పుస్తకం మరియు అధ్యాయాన్ని ఎంచుకోండి</string>
+    <string name="book_label">పుస్తకం:</string>
+    <string name="chapter_label">అధ్యాయం:</string>
+    
+    <!-- Bible Dictionary Activity -->
+    <string name="bible_dictionary_error">బైబిల్ నిఘంటువు లోడ్ చేయడంలో విఫలమైంది. దయచేసి మీ ఇంటర్నెట్ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.</string>
+    
+    <!-- Language Toggle -->
+    <string name="language_toggle">భాష</string>
+    <string name="language_changed">భాష ఇంగ్లీష్‌కు మార్చబడింది</string>
+    <string name="language_changed_telugu">భాష తెలుగుకు మార్చబడింది</string>
+    
+    <!-- Settings -->
+    <string name="settings_icon">సెట్టింగ్‌లు</string>
+    <string name="language_settings">భాష సెట్టింగ్‌లు</string>
+    <string name="language_settings_description">యాప్ ఇంటర్‌ఫేస్ కోసం మీ ఇష్టపడే భాషను ఎంచుకోండి</string>
+    <string name="verse_of_day">ఈ రోజు వచనం</string>
+    <string name="telugu">తెలుగు</string>
+    <string name="english">English</string>
+    <string name="listen">వినండి</string>
+    <string name="read_full_devotional">పూర్తి ధ్యానం చదవండి</string>
+    <string name="share">షేర్ చేయండి</string>
+    <string name="copy_text">టెక్స్ట్ కాపీ చేయండి</string>
+    <string name="share_image">చిత్రం షేర్ చేయండి</string>
+    <string name="language_toggle_hint">ఇంగ్లీష్ మరియు తెలుగు మధ్య మార్చడానికి టోగుల్ చేయండి</string>
+    <string name="daily_devotional_title">రోజువారీ ఆధ్యాత్మిక సాధన</string>
+    <string name="audio_devotionals">ఆడియో ధ్యానాలు</string>
+    <string name="rewind">10 సెకన్లు వెనుకకు</string>
+    <string name="forward">10 సెకన్లు ముందుకు</string>
+    <string name="play">ప్లే</string>
+    <string name="pause">పాజ్</string>
+    <string name="audio_error">ఆడియో ధ్యానం లోడ్ చేయడంలో లోపం</string>
+    
+    <!-- Prayer Reminder -->
+    <string name="prayer_reminder">ప్రార్థన గుర్తుచేత</string>
+    <string name="reminder_name">గుర్తుచేత పేరు</string>
+    <string name="enter_reminder_name">గుర్తుచేత పేరు నమోదు చేయండి</string>
+    <string name="reminder_time">గుర్తుచేత సమయం</string>
+    <string name="select_time">సమయం ఎంచుకోండి</string>
+    <string name="save_reminder">గుర్తుచేత సేవ్ చేయండి</string>
+    <string name="reminder_saved">ప్రార్థన గుర్తుచేత విజయవంతంగా సేవ్ చేయబడింది!</string>
+    <string name="reminder_error">ప్రార్థన గుర్తుచేత సేవ్ చేయడంలో లోపం</string>
+    <string name="prayer_time">ప్రార్థన సమయం</string>
+    <string name="prayer_notification_title">ప్రార్థన గుర్తుచేత</string>
+    <string name="prayer_notification_text">మీ ప్రార్థన సమయం వచ్చింది: %s</string>
+    
+    <!-- Prayer Reminder Card -->
+    <string name="set_reminder">గుర్తుచేత సెట్ చేయండి</string>
+    <string name="prayer_reminder_description">మీ ఆధ్యాత్మిక రూటిన్ ను నిర్వహించడానికి మరియు దేవునితో కనెక్ట్ అవ్వడానికి రోజువారీ ప్రార్థన గుర్తుచేతలను సెట్ చేయండి.</string>
+    <string name="set_prayer_reminder">ప్రార్థన గుర్తుచేత సెట్ చేయండి</string>
+    <string name="reminder_active">గుర్తుచేత చురుకుగా ఉంది</string>
+    <string name="reminder_set_for">గుర్తుచేత సెట్ చేయబడింది: %s</string>
+    <string name="manage">నిర్వహించండి</string>
+    <string name="edit_reminder">గుర్తుచేత సవరించండి</string>
+    <string name="delete_reminder">గుర్తుచేత తొలగించండి</string>
+    <string name="reminder_deleted">ప్రార్థన గుర్తుచేత విజయవంతంగా తొలగించబడింది!</string>
+    <string name="snooze">వాయిదా</string>
+    <string name="dismiss">విస్మరించండి</string>
+    <string name="snooze_5_min">5 నిమిషాల వాయిదా</string>
+    <string name="snooze_15_min">15 నిమిషాల వాయిదా</string>
+    <string name="snooze_30_min">30 నిమిషాల వాయిదా</string>
+    <string name="saved_alarms">సేవ్ చేయబడిన అలారములు</string>
+    <string name="set_alarm">అలారం సెట్ చేయండి</string>
+    <string name="alarm_name">అలారం పేరు</string>
+    <string name="select_days">రోజులు ఎంచుకోండి</string>
+    <string name="save_alarm">అలారం సేవ్ చేయండి</string>
+    <string name="alarm_saved">అలారం విజయవంతంగా సేవ్ చేయబడింది!</string>
+    <string name="alarm_updated">అలారం విజయవంతంగా అప్‌డేట్ చేయబడింది!</string>
+    <string name="no_alarms">ఇంకా అలారములు సెట్ చేయబడలేదు</string>
+    <string name="add_first_alarm">మీ మొదటి ప్రార్థన అలారాన్ని జోడించండి</string>
+    <string name="current_time">ప్రస్తుత సమయం</string>
+    <string name="daily_verse">రోజువారీ వచనం</string>
+    <string name="stop_alarm">అలారమ్ ఆపు</string>
+</resources>

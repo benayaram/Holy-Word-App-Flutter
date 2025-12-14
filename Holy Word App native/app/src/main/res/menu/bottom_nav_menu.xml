@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_personal_devotional"
+        android:icon="@drawable/ic_person"
+        android:title="Daily Devotional" />
+    
+    <item
+        android:id="@+id/nav_bible_study_tools"
+        android:icon="@drawable/ic_bible"
+        android:title="Bible Study" />
+    
+    <item
+        android:id="@+id/nav_worship_music"
+        android:icon="@drawable/ic_play"
+        android:title="Worship" />
+    
+    <item
+        android:id="@+id/nav_sermons_teachings"
+        android:icon="@drawable/ic_email"
+        android:title="Teachings" />
+    
+    <item
+        android:id="@+id/nav_community_church"
+        android:icon="@drawable/ic_person_add"
+        android:title="Community" />
+</menu>

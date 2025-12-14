@@ -1,0 +1,92 @@
+{
+  "cross_references": {
+    "Gen|1|1": [
+      {
+        "book": "Prov",
+        "chapter": 16,
+        "verse": 4,
+        "type": "parallel"
+      },
+      {
+        "book": "Rev",
+        "chapter": 10,
+        "verse": 6,
+        "type": "parallel"
+      },
+      {
+        "book": "Isa",
+        "chapter": 65,
+        "verse": 17,
+        "type": "theme"
+      },
+      {
+        "book": "Eph",
+        "chapter": 3,
+        "verse": 9,
+        "type": "quotation"
+      }
+    ],
+    "Gen|1|26": [
+      {
+        "book": "Jas",
+        "chapter": 3,
+        "verse": 9,
+        "type": "quotation"
+      },
+      {
+        "book": "1Cor",
+        "chapter": 11,
+        "verse": 7,
+        "type": "allusion"
+      }
+    ],
+    "Gen|3|15": [
+      {
+        "book": "Gal",
+        "chapter": 4,
+        "verse": 4,
+        "type": "fulfillment"
+      },
+      {
+        "book": "Rom",
+        "chapter": 16,
+        "verse": 20,
+        "type": "fulfillment"
+      }
+    ],
+    "Ps|23|1": [
+      {
+        "book": "John",
+        "chapter": 10,
+        "verse": 11,
+        "type": "parallel"
+      },
+      {
+        "book": "Heb",
+        "chapter": 13,
+        "verse": 20,
+        "type": "quotation"
+      }
+    ],
+    "Isa|53|5": [
+      {
+        "book": "1Pet",
+        "chapter": 2,
+        "verse": 24,
+        "type": "fulfillment"
+      },
+      {
+        "book": "Rom",
+        "chapter": 4,
+        "verse": 25,
+        "type": "quotation"
+      }
+    ]
+  },
+  "metadata": {
+    "total_sources": 5,
+    "total_references": 12,
+    "version": "1.0",
+    "description": "Cross references for Bible navigation"
+  }
+}

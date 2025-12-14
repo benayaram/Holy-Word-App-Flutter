@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors - Modern Blue -->
+    <color name="primary">#2563EB</color>
+    <color name="primary_dark">#1D4ED8</color>
+    <color name="primary_light">#3B82F6</color>
+    
+    <!-- Secondary Colors - Modern Green -->
+    <color name="secondary">#059669</color>
+    <color name="secondary_dark">#047857</color>
+    <color name="secondary_light">#10B981</color>
+    
+    <!-- Accent Colors - Modern Orange -->
+    <color name="accent">#F59E0B</color>
+    <color name="accent_dark">#D97706</color>
+    <color name="accent_light">#FBBF24</color>
+    
+    <!-- Background Colors - Clean White Theme -->
+    <color name="background_primary">#FFFFFF</color>
+    <color name="background_secondary">#F8FAFC</color>
+    <color name="background_card">#FFFFFF</color>
+    <color name="background_dark">#1F2937</color>
+    
+    <!-- Text Colors - Modern Gray Scale -->
+    <color name="text_primary">#1F2937</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="text_hint">#9CA3AF</color>
+    <color name="text_white">#FFFFFF</color>
+    
+    <!-- Status Colors - Modern Palette -->
+    <color name="success">#10B981</color>
+    <color name="error">#EF4444</color>
+    <color name="warning">#F59E0B</color>
+    <color name="info">#3B82F6</color>
+    
+    <!-- Bible Theme Colors - Refined -->
+    <color name="bible_gold">#D4AF37</color>
+    <color name="bible_maroon">#800020</color>
+    <color name="bible_navy">#1E3A8A</color>
+    <color name="bible_forest">#059669</color>
+    
+    <!-- System Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
+    
+    <!-- Divider Colors - Subtle -->
+    <color name="divider">#E5E7EB</color>
+    <color name="divider_dark">#374151</color>
+    
+    <!-- Overlay Colors -->
+    <color name="overlay_light">#80000000</color>
+    <color name="overlay_dark">#CC000000</color>
+</resources>

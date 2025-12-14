@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.HolyWordApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+        
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/primary</item>
+        <item name="android:windowLightStatusBar">false</item>
+        
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/background_primary</item>
+        <item name="colorSurface">@color/background_card</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        
+        <!-- Text colors -->
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorHint">@color/text_hint</item>
+        
+        <!-- Custom attributes -->
+        <item name="colorAccent">@color/accent</item>
+        <item name="colorError">@color/error</item>
+        <item name="colorSuccess">@color/success</item>
+        <item name="colorWarning">@color/warning</item>
+        <item name="colorInfo">@color/info</item>
+        
+        <!-- Typography -->
+        <item name="textAppearanceHeadline1">@style/TextAppearance.HolyWordApp.Headline1</item>
+        <item name="textAppearanceHeadline2">@style/TextAppearance.HolyWordApp.Headline2</item>
+        <item name="textAppearanceHeadline3">@style/TextAppearance.HolyWordApp.Headline3</item>
+        <item name="textAppearanceHeadline4">@style/TextAppearance.HolyWordApp.Headline4</item>
+        <item name="textAppearanceHeadline5">@style/TextAppearance.HolyWordApp.Headline5</item>
+        <item name="textAppearanceHeadline6">@style/TextAppearance.HolyWordApp.Headline6</item>
+        <item name="textAppearanceSubtitle1">@style/TextAppearance.HolyWordApp.Subtitle1</item>
+        <item name="textAppearanceSubtitle2">@style/TextAppearance.HolyWordApp.Subtitle2</item>
+        <item name="textAppearanceBody1">@style/TextAppearance.HolyWordApp.Body1</item>
+        <item name="textAppearanceBody2">@style/TextAppearance.HolyWordApp.Body2</item>
+        <item name="textAppearanceButton">@style/TextAppearance.HolyWordApp.Button</item>
+        <item name="textAppearanceCaption">@style/TextAppearance.HolyWordApp.Caption</item>
+        <item name="textAppearanceOverline">@style/TextAppearance.HolyWordApp.Overline</item>
+    </style>
+    
+    <!-- Typography styles -->
+    <style name="TextAppearance.HolyWordApp.Headline1" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:textSize">32sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">@font/roboto_medium</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Headline2" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">@font/roboto_medium</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Headline3" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">@font/roboto_medium</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Headline4" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">@font/roboto_medium</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Headline5" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">@font/roboto_medium</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Headline6" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">@font/roboto_medium</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Subtitle1" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:fontFamily">@font/roboto_regular</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Subtitle2" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:fontFamily">@font/roboto_regular</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Body1" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">@font/roboto_regular</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Body2" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">@font/roboto_regular</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Button" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:fontFamily">@font/roboto_medium</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Caption" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/text_hint</item>
+        <item name="android:fontFamily">@font/roboto_regular</item>
+    </style>
+    
+    <style name="TextAppearance.HolyWordApp.Overline" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">10sp</item>
+        <item name="android:textColor">@color/text_hint</item>
+        <item name="android:fontFamily">@font/roboto_medium</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+    
+    <!-- Custom component styles -->
+    <style name="Widget.HolyWordApp.Button" parent="Widget.Material3.Button">
+        <item name="android:textAppearance">@style/TextAppearance.HolyWordApp.Button</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:minHeight">56dp</item>
+    </style>
+    
+    <style name="Widget.HolyWordApp.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textAppearance">@style/TextAppearance.HolyWordApp.Button</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:minHeight">56dp</item>
+    </style>
+    
+    <style name="Widget.HolyWordApp.CardView" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="cardBackgroundColor">@color/background_card</item>
+    </style>
+    
+
+
+
+    <style name="Widget.HolyWordApp.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+    </style>
+
+    <!-- Modern Text Input Layout for Auth Screens -->
+    <style name="Widget.HolyWordApp.TextInputLayout.Modern" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">16dp</item>
+        <item name="boxCornerRadiusTopEnd">16dp</item>
+        <item name="boxCornerRadiusBottomStart">16dp</item>
+        <item name="boxCornerRadiusBottomEnd">16dp</item>
+        <item name="boxStrokeWidth">2dp</item>
+        <item name="boxStrokeColor">@color/primary</item>
+        <item name="hintTextColor">@color/primary</item>
+        <item name="startIconTint">@color/primary</item>
+        <item name="endIconTint">@color/text_secondary</item>
+        <item name="startIconMinSize">24dp</item>
+        <item name="hintTextAppearance">@style/TextAppearance.HolyWordApp.Caption</item>
+    </style>
+
+    <!-- Gradient Button Style -->
+    <style name="Widget.HolyWordApp.Button.Gradient" parent="Widget.Material3.Button">
+        <item name="android:textAppearance">@style/TextAppearance.HolyWordApp.Button</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="backgroundTint">@color/primary</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Splash screen theme -->
+    <style name="Theme.HolyWordApp.Splash" parent="Theme.HolyWordApp">
+        <item name="android:windowBackground">@color/background_primary</item>
+        <item name="android:statusBarColor">@color/background_primary</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- Bible Activity theme with blue action bar -->
+    <style name="Theme.HolyWordApp.Bible" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/bible_navy</item>
+        <item name="colorPrimaryDark">@color/bible_navy</item>
+        <item name="colorAccent">@color/bible_gold</item>
+        <item name="android:statusBarColor">@color/bible_navy</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="actionBarStyle">@style/Widget.HolyWordApp.ActionBar.Bible</item>
+    </style>
+
+    <!-- Bible Action Bar style -->
+    <style name="Widget.HolyWordApp.ActionBar.Bible" parent="Widget.AppCompat.Light.ActionBar">
+        <item name="background">@color/bible_navy</item>
+        <item name="titleTextColor">@color/white</item>
+        <item name="subtitleTextColor">@color/white</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/white</item>
+        <item name="colorControlNormal">@color/white</item>
+    </style>
+</resources>

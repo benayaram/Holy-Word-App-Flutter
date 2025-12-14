@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "352904674576",
+    "project_id": "holy-word-app1",
+    "storage_bucket": "holy-word-app1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:352904674576:android:f091db8e5aed79136e7995",
+        "android_client_info": {
+          "package_name": "com.holywordapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDP6o910QuMBeLKQkXBIwzaaJeMlV63XhM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

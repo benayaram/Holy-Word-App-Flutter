@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_primary">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Top Bar: Logo, App Name, Settings -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp"
+            android:paddingHorizontal="4dp">
+
+            <ImageView
+                android:id="@+id/logo_button"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/logo"
+                android:contentDescription="@string/app_name"
+                android:background="@drawable/logo_background"
+                android:padding="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:scaleType="centerInside" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
+                android:text="@string/app_name"
+                android:textAppearance="@style/TextAppearance.HolyWordApp.Headline5"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:letterSpacing="0.02"
+                android:gravity="center_vertical" />
+
+            <ImageButton
+                android:id="@+id/settings_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_round_icon"
+                android:contentDescription="@string/settings"
+                android:padding="12dp"
+                app:tint="@color/primary"
+                android:src="@drawable/ic_settings"
+                android:scaleType="centerInside" />
+        </LinearLayout>
+
+        <!-- Welcome Text -->
+        <TextView
+            android:id="@+id/welcome_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="@string/daily_devotional_title"
+            android:textAppearance="@style/TextAppearance.HolyWordApp.Headline4"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+        <!-- Verse of the Day Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/verse_of_day_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:layout_marginHorizontal="4dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="@android:color/white"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/primary">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <!-- Title -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:text="@string/verse_of_day"
+                    android:textAppearance="@style/TextAppearance.HolyWordApp.Headline6"
+                    android:textColor="@color/primary"
+                    android:textStyle="bold"
+                    android:textSize="22sp"
+                    android:gravity="center" />
+
+                <!-- Language Selection -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/telugu_lang_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/telugu"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/white"
+                        android:backgroundTint="@color/primary"
+                        app:cornerRadius="20dp"
+                        app:strokeWidth="0dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/english_lang_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/english"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        android:backgroundTint="@color/background_card"
+                        app:cornerRadius="20dp"
+                        app:strokeWidth="0dp" />
+                </LinearLayout>
+
+                <!-- Verse Text -->
+                <TextView
+                    android:id="@+id/verse_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:text="@string/loading"
+                    android:textAppearance="@style/TextAppearance.HolyWordApp.Body1"
+                    android:textColor="@color/text_primary"
+                    android:textSize="20sp"
+                    android:textStyle="normal"
+                    android:lineSpacingExtra="8dp"
+                    android:gravity="center"
+                    android:letterSpacing="0.02" />
+
+                <!-- Verse Reference -->
+                <TextView
+                    android:id="@+id/verse_reference"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:text=""
+                    android:textAppearance="@style/TextAppearance.HolyWordApp.Subtitle1"
+                    android:textColor="@color/primary"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:background="@drawable/bg_round_icon"
+                    android:padding="12dp"
+                    android:letterSpacing="0.03" />
+
+                <!-- Action Buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/share_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/share"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/white"
+                        android:backgroundTint="@color/primary"
+                        app:cornerRadius="20dp"
+                        app:icon="@drawable/ic_share"
+                        app:iconTint="@android:color/white"
+                        app:iconSize="18dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/audio_devotionals_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/audio_devotionals"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/white"
+                        android:backgroundTint="@color/primary"
+                        app:cornerRadius="20dp"
+                        app:icon="@drawable/ic_headphones"
+                        app:iconTint="@android:color/white"
+                        app:iconSize="18dp" />
+
+                    <TextView
+                        android:id="@+id/read_full_link"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/read_full_devotional"
+                        android:textColor="@color/primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Prayer Reminder Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/prayer_reminder_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:layout_marginHorizontal="4dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="@android:color/white"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/primary">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <!-- Prayer Reminder Header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_alarm"
+                        android:layout_marginEnd="12dp"
+                        app:tint="@color/primary"
+                        android:scaleType="centerInside" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/prayer_reminder"
+                        android:textAppearance="@style/TextAppearance.HolyWordApp.Headline6"
+                        android:textColor="@color/primary"
+                        android:textStyle="bold"
+                        android:textSize="20sp"
+                        android:gravity="center_vertical" />
+
+                    <TextView
+                        android:id="@+id/prayer_reminder_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/set_reminder"
+                        android:textAppearance="@style/TextAppearance.HolyWordApp.Body2"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:background="@drawable/bg_round_icon"
+                        android:padding="8dp"
+                        android:gravity="center" />
+                </LinearLayout>
+
+                <!-- Prayer Reminder Description -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:text="@string/prayer_reminder_description"
+                    android:textAppearance="@style/TextAppearance.HolyWordApp.Body2"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="4dp"
+                    android:gravity="center" />
+
+                <!-- Prayer Reminder Buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/prayer_reminder_button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/set_prayer_reminder"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/white"
+                        android:backgroundTint="@color/primary"
+                        app:cornerRadius="16dp"
+                        app:icon="@drawable/ic_alarm"
+                        app:iconTint="@android:color/white"
+                        app:iconGravity="textStart"
+                        android:paddingVertical="16dp"
+                        android:textAlignment="textStart"
+                        android:elevation="4dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/manage_reminder_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/manage"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        android:backgroundTint="@color/background_card"
+                        app:cornerRadius="16dp"
+                        app:icon="@drawable/ic_settings"
+                        app:iconTint="@color/text_secondary"
+                        app:iconGravity="textStart"
+                        android:paddingVertical="16dp"
+                        android:textAlignment="textStart"
+                        android:visibility="gone" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/saved_alarms_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/saved_alarms"
+                        android:textSize="14sp"
+                        android:textColor="@color/primary"
+                        android:backgroundTint="@color/background_card"
+                        app:cornerRadius="16dp"
+                        app:icon="@drawable/ic_alarm"
+                        app:iconTint="@color/primary"
+                        app:iconGravity="textStart"
+                        android:paddingVertical="16dp"
+                        android:textAlignment="textStart" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Loading Indicator -->
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/loading_indicator"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            app:indicatorColor="@color/primary"
+            app:trackColor="@color/divider"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</ScrollView>

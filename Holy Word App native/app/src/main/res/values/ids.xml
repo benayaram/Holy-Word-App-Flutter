@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="action_notes" type="id" />
+    <item name="action_add_to_note" type="id" />
+    <item name="btnPickBg" type="id" />
+    <item name="dragHandle" type="id" />
+    <item name="colorSpinner" type="id" />
+    <item name="bgSpinner" type="id" />
+    <item name="btnBgColor" type="id" />
+    <item name="btnAlign" type="id" />
+    <item name="layoutCrossReferences" type="id" />
+</resources>

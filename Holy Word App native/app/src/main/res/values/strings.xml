@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Holy Word</string>
+    
+    <!-- Splash -->
+    <string name="app_tagline_text">Your Daily Spiritual Companion</string>
+    <string name="loading_spiritual_journey">Loading your spiritual journey...</string>
+    <string name="version_1_0">Version 1.0</string>
+    <string name="copyright_2025">© 2025 Holy Word App</string>
+    
+    <!-- Authentication -->
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="login_success">Login successful</string>
+    <string name="register_success">Registration successful</string>
+    <string name="logout">Logout</string>
+    <string name="welcome_message">Welcome to Holy Word</string>
+    <string name="enter_email">Enter your email</string>
+    <string name="enter_password">Enter your password</string>
+    <string name="password_mismatch">Passwords do not match</string>
+    <string name="invalid_email">Invalid email format</string>
+    <string name="password_too_short">Password must be at least 6 characters</string>
+    
+    <!-- Navigation -->
+    <string name="nav_bible">Bible</string>
+    <string name="nav_songs">Songs</string>
+    <string name="nav_sermons">Sermons</string>
+    <string name="nav_daily_verse">Daily Verse</string>
+    <string name="nav_reading_plans">Reading Plans</string>
+    <string name="nav_bible_project">Bible Project</string>
+    <string name="nav_prayer_wall">Prayer Wall</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_admin">Admin</string>
+    <string name="nav_live_stream">Live Stream</string>
+    
+    <!-- Bible Reader -->
+    <string name="bible_reader">Bible Reader</string>
+    <string name="select_book">Select Book</string>
+    <string name="select_chapter">Select Chapter</string>
+    <string name="verse_number">Verse %1$d</string>
+    <string name="highlight_verse">Highlight Verse</string>
+    <string name="add_note">Add Note</string>
+    <string name="share_verse">Share Verse</string>
+    <string name="share_as_image">Share as Image</string>
+    <string name="copy_verse">Copy Verse</string>
+    <string name="verse_highlighted">Verse highlighted</string>
+    <string name="note_saved">Note saved</string>
+    <string name="verse_copied">Verse copied to clipboard</string>
+    <string name="play_audio">Play Audio</string>
+    <string name="pause_audio">Pause Audio</string>
+    <string name="audio_loading">Loading audio...</string>
+    <string name="audio_error">Error loading audio devotional</string>
+    
+    <!-- Verse Designer -->
+    <string name="verse_designer">Verse Designer</string>
+    <string name="select_background">Select Background</string>
+    <string name="custom_background">Custom Background</string>
+    <string name="text_settings">Text Settings</string>
+    <string name="font_family">Font Family</string>
+    <string name="font_size">Font Size</string>
+    <string name="text_color">Text Color</string>
+    <string name="text_alignment">Text Alignment</string>
+    <string name="align_left">Left</string>
+    <string name="align_center">Center</string>
+    <string name="align_right">Right</string>
+    <string name="export_image">Export Image</string>
+    <string name="image_saved">Image saved to gallery</string>
+    <string name="share_image">Share Image</string>
+    
+    <!-- Daily Verse -->
+    <string name="daily_verse_title">Daily Verse</string>
+    <string name="daily_verse_telugu">Telugu Verse</string>
+    <string name="daily_verse_english">English Verse</string>
+    <string name="watch_sermon">Watch Sermon</string>
+    <string name="share_daily_verse">Share Daily Verse</string>
+    <string name="no_daily_verse">No daily verse available</string>
+    
+    <!-- Songs -->
+    <string name="christian_songs">Christian Songs</string>
+    <string name="search_songs">Search songs...</string>
+    <string name="filter_by_year">Filter by Year</string>
+    <string name="filter_by_genre">Filter by Genre</string>
+    <string name="filter_by_singer">Filter by Singer</string>
+    <string name="all_years">All Years</string>
+    <string name="all_genres">All Genres</string>
+    <string name="all_singers">All Singers</string>
+    <string name="song_title">Title</string>
+    <string name="song_year">Year</string>
+    <string name="song_genre">Genre</string>
+    <string name="song_singer">Singer</string>
+    <string name="add_to_favorites">Add to Favorites</string>
+    <string name="remove_from_favorites">Remove from Favorites</string>
+    <string name="request_song">Request Song</string>
+    <string name="song_request_sent">Song request sent</string>
+    <string name="favorites">Favorites</string>
+    <string name="no_favorites">No favorite songs yet</string>
+    
+    <!-- Sermons -->
+    <string name="sermons">Sermons</string>
+    <string name="sermon_title">Sermon Title</string>
+    <string name="sermon_preacher">Preacher</string>
+    <string name="sermon_date">Date</string>
+    <string name="sermon_topic">Topic</string>
+    <string name="watch_sermon_video">Watch Sermon Video</string>
+    <string name="no_sermons">No sermons available</string>
+    
+    <!-- Reading Plans -->
+    <string name="reading_plans">Reading Plans</string>
+    <string name="bible_project_reading">Bible Project Reading Plans</string>
+    <string name="toggle_dark_mode">Toggle Dark Mode</string>
+    
+    <!-- Bible Project -->
+    <string name="bible_project_videos">Bible Project Videos</string>
+    <string name="bible_project_summaries">Bible Book Summaries</string>
+    <string name="old_testament">Old Testament</string>
+    <string name="new_testament">New Testament</string>
+    
+    <!-- Prayer Wall -->
+    <string name="prayer_wall">Prayer Wall</string>
+    <string name="prayer_request">Prayer Request</string>
+    <string name="i_prayed">I Prayed</string>
+    <string name="prayer_count">%1$d people prayed</string>
+    <string name="urgent_request">Urgent Request</string>
+    <string name="featured_prayer">Featured Prayer</string>
+    <string name="no_prayers">No prayer requests yet</string>
+    <string name="prayer_posted">Prayer request posted</string>
+    
+    <!-- Search -->
+    <string name="search_bible">Search Bible</string>
+    <string name="search_placeholder">Search for verses, keywords...</string>
+    <string name="search_results">Search Results</string>
+    <string name="no_results">No results found</string>
+    <string name="search_songs_placeholder">Search songs by title, singer, genre...</string>
+    
+    <!-- Admin Dashboard -->
+    <string name="admin_dashboard">Admin Dashboard</string>
+    <string name="admin_dashboard_title">This is Admin Dashboard</string>
+    <string name="send_daily_verse">Send Daily Verse</string>
+    <string name="upload_song">Upload Song</string>
+    <string name="upload_sermon">Upload Sermon</string>
+    <string name="app_analytics">App Analytics</string>
+    <string name="daily_users">Daily Users</string>
+    <string name="verse_shares">Verse Shares</string>
+    <string name="active_readers">Active Readers</string>
+    <string name="notification_sent">Notification sent successfully</string>
+    <string name="song_uploaded">Song uploaded successfully</string>
+    <string name="sermon_uploaded">Sermon uploaded successfully</string>
+    
+    <!-- Live Streaming -->
+    <string name="live_stream">Live Stream</string>
+    <string name="social_media_member">I am a Social Media Member</string>
+    <string name="access_live_stream">Access Live Stream</string>
+    <string name="live_stream_offline">Live stream is currently offline</string>
+    <string name="admin_validation_required">Admin validation required</string>
+    
+    <!-- Profile -->
+    <string name="profile">Profile</string>
+    <string name="user_name">Name</string>
+    <string name="user_email">Email</string>
+    <string name="user_role">Role</string>
+    <string name="role_user">User</string>
+    <string name="role_admin">Admin</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="profile_updated">Profile updated successfully</string>
+    
+    <!-- Common -->
+    <string name="loading">Loading...</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="retry">Retry</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="save">Save</string>
+    <string name="close">Close</string>
+    <string name="back">Back</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="done">Done</string>
+    <string name="settings">Settings</string>
+    <string name="about">About</string>
+    <string name="version">Version %1$s</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="terms_of_service">Terms of Service</string>
+    <string name="contact_us">Contact Us</string>
+    <string name="rate_app">Rate App</string>
+    <string name="share_app">Share App</string>
+    
+    <!-- Notifications -->
+    <string name="notification_channel_daily_verse">Daily Verse</string>
+    <string name="notification_channel_prayer">Prayer Requests</string>
+    <string name="notification_channel_general">General</string>
+    <string name="daily_verse_notification_title">Daily Verse</string>
+    <string name="daily_verse_notification_body">Today\'s verse is ready for you</string>
+    <string name="prayer_request_notification_title">New Prayer Request</string>
+    <string name="prayer_request_notification_body">Someone needs your prayers</string>
+    
+    <!-- Permissions -->
+    <string name="permission_storage">Storage Permission</string>
+    <string name="permission_storage_rationale">Storage permission is needed to save images</string>
+    <string name="permission_internet">Internet Permission</string>
+    <string name="permission_internet_rationale">Internet permission is needed to load content</string>
+    
+    <!-- Bible Books (English) -->
+    <string name="genesis">Genesis</string>
+    <string name="exodus">Exodus</string>
+    <string name="leviticus">Leviticus</string>
+    <string name="numbers">Numbers</string>
+    <string name="deuteronomy">Deuteronomy</string>
+    <string name="joshua">Joshua</string>
+    <string name="judges">Judges</string>
+    <string name="ruth">Ruth</string>
+    <string name="samuel_1">1 Samuel</string>
+    <string name="samuel_2">2 Samuel</string>
+    <string name="kings_1">1 Kings</string>
+    <string name="kings_2">2 Kings</string>
+    <string name="chronicles_1">1 Chronicles</string>
+    <string name="chronicles_2">2 Chronicles</string>
+    <string name="ezra">Ezra</string>
+    <string name="nehemiah">Nehemiah</string>
+    <string name="esther">Esther</string>
+    <string name="job">Job</string>
+    <string name="psalms">Psalms</string>
+    <string name="proverbs">Proverbs</string>
+    <string name="ecclesiastes">Ecclesiastes</string>
+    <string name="song_of_songs">Song of Songs</string>
+    <string name="isaiah">Isaiah</string>
+    <string name="jeremiah">Jeremiah</string>
+    <string name="lamentations">Lamentations</string>
+    <string name="ezekiel">Ezekiel</string>
+    <string name="daniel">Daniel</string>
+    <string name="hosea">Hosea</string>
+    <string name="joel">Joel</string>
+    <string name="amos">Amos</string>
+    <string name="obadiah">Obadiah</string>
+    <string name="jonah">Jonah</string>
+    <string name="micah">Micah</string>
+    <string name="nahum">Nahum</string>
+    <string name="habakkuk">Habakkuk</string>
+    <string name="zephaniah">Zephaniah</string>
+    <string name="haggai">Haggai</string>
+    <string name="zechariah">Zechariah</string>
+    <string name="malachi">Malachi</string>
+    <string name="matthew">Matthew</string>
+    <string name="mark">Mark</string>
+    <string name="luke">Luke</string>
+    <string name="john">John</string>
+    <string name="acts">Acts</string>
+    <string name="romans">Romans</string>
+    <string name="corinthians_1">1 Corinthians</string>
+    <string name="corinthians_2">2 Corinthians</string>
+    <string name="galatians">Galatians</string>
+    <string name="ephesians">Ephesians</string>
+    <string name="philippians">Philippians</string>
+    <string name="colossians">Colossians</string>
+    <string name="thessalonians_1">1 Thessalonians</string>
+    <string name="thessalonians_2">2 Thessalonians</string>
+    <string name="timothy_1">1 Timothy</string>
+    <string name="timothy_2">2 Timothy</string>
+    <string name="titus">Titus</string>
+    <string name="philemon">Philemon</string>
+    <string name="hebrews">Hebrews</string>
+    <string name="james">James</string>
+    <string name="peter_1">1 Peter</string>
+    <string name="peter_2">2 Peter</string>
+    <string name="john_1">1 John</string>
+    <string name="john_2">2 John</string>
+    <string name="john_3">3 John</string>
+    <string name="jude">Jude</string>
+    <string name="revelation">Revelation</string>
+    
+    <!-- Onboarding -->
+    <string name="onboarding_language_title">Welcome</string>
+    <string name="onboarding_language_description">Please select your language.</string>
+    <string name="onboarding_welcome_title">Welcome to Holy Word</string>
+    <string name="onboarding_welcome_description">Your daily source of spiritual inspiration.</string>
+    <string name="onboarding_video_title">See How It Works</string>
+    <string name="onboarding_video_description">Watch a quick video to learn about all the features.</string>
+    <string name="onboarding_ready_title">Ready to Begin?</string>
+    <string name="onboarding_ready_description">Your journey of faith starts now.</string>
+    <string name="play_video">Play Video</string>
+    <string name="continue_text">Continue</string>
+    <string name="skip_text">Skip</string>
+    <string name="start_dashboard">Get Started</string>
+    
+    <!-- Language Options -->
+    <string name="language_english">English</string>
+    <string name="language_telugu">తెలుగు</string>
+    
+    <!-- Bible Study Tools -->
+    <string name="bible_study_tools_title">Bible Study Tools</string>
+    <string name="bible_study_tools_subtitle">Explore the Word of God with powerful study tools</string>
+    
+    <!-- Bible Card -->
+    <string name="bible_title">Bible</string>
+    <string name="bible_description">Read and study the complete Holy Bible with verse-by-verse navigation</string>
+    <string name="open_bible">Open Bible</string>
+    
+    <!-- Cross References Card -->
+    <string name="cross_references_title">Cross References</string>
+    <string name="cross_references_description">Find related verses and passages that connect with your study</string>
+    <string name="find_references">Find References</string>
+    
+    <!-- Audio Bible Card -->
+    <string name="audio_bible_title">Audio Bible</string>
+    <string name="audio_bible_description">Listen to the Word of God with high-quality audio in Telugu and English</string>
+    <string name="listen_now">Listen Now</string>
+    <string name="audio_bible">Audio Bible</string>
+    
+    <!-- Powerful Search Card -->
+    <string name="powerful_search_title">Powerful Search</string>
+    <string name="powerful_search_description">Search across multiple Bible versions and translations</string>
+    <string name="search_now">Search Now</string>
+    
+    <!-- Bible Dictionary Card -->
+    <string name="bible_dictionary_title">Bible Dictionary</string>
+    <string name="bible_dictionary_description">Explore Telugu Bible Dictionary with comprehensive definitions</string>
+    <string name="open_dictionary">Open Dictionary</string>
+    
+    <!-- Cross References Activity -->
+    <string name="cross_references">Cross References</string>
+    <string name="book">Book</string>
+    <string name="chapter">Chapter</string>
+    <string name="verse">Verse</string>
+    <string name="find_cross_references">Find Cross References</string>
+    <string name="en_te">EN/TE</string>
+    <string name="no_cross_references_found">No cross references found</string>
+    <string name="cross_references_found">Cross References Found:</string>
+    
+    <!-- Admin Dashboard -->
+    <string name="welcome_to_admin_dashboard">Welcome to Admin Dashboard</string>
+    <string name="admin_features">Admin Features</string>
+    <string name="admin_features_list">• User Management\n• Content Management\n• Analytics Dashboard\n• System Settings</string>
+    
+    <!-- User Dashboard -->
+    <string name="holy_word_app">Holy Word App</string>
+    <string name="click_for_admin_login">Click for Admin Login</string>
+    
+    <!-- Admin Login -->
+    <string name="admin_login">Admin Login</string>
+    <string name="enter_admin_credentials">Enter your admin credentials</string>
+    <string name="back_to_user_dashboard">← Back to User Dashboard</string>
+    
+    <!-- Bible Activity -->
+    <string name="te">TE</string>
+    <string name="highlight">Highlight</string>
+    <string name="share_text">Share Text</string>
+    <string name="share">Share</string>
+    <string name="copy">Copy</string>
+    <string name="copy_text">Copy Text</string>
+    <string name="cross_ref">Cross Ref</string>
+    <string name="time_placeholder">00:00</string>
+    
+    <!-- Audio Bible Activity -->
+    <string name="listen_to_word_of_god">Listen to the Word of God</string>
+    <string name="language_selection">Language Selection</string>
+    <string name="current_language">Current Language:</string>
+    <string name="en">EN</string>
+    <string name="select_book_and_chapter">Select Book and Chapter</string>
+    <string name="book_label">Book:</string>
+    <string name="chapter_label">Chapter:</string>
+    
+    <!-- Bible Dictionary Activity -->
+    <string name="bible_dictionary_error">Failed to load Bible Dictionary. Please check your internet connection and try again.</string>
+    
+    <!-- Language Toggle -->
+    <string name="language_toggle">Language</string>
+    <string name="language_changed">Language changed to English</string>
+    <string name="language_changed_telugu">Language changed to Telugu</string>
+    
+    <!-- Settings -->
+    <string name="settings_icon">Settings</string>
+    <string name="language_settings">Language Settings</string>
+    <string name="language_settings_description">Choose your preferred language for the app interface</string>
+    <string name="verse_of_day">Verse of the Day</string>
+    <string name="telugu">తెలుగు</string>
+    <string name="english">English</string>
+    <string name="listen">Listen</string>
+    <string name="read_full_devotional">Read Full Devotional</string>
+    <string name="language_toggle_hint">Toggle to switch between English and Telugu</string>
+    <string name="error_loading_verse">Error loading daily verse</string>
+    <string name="daily_devotional_title">Daily Devotional</string>
+    <string name="audio_devotionals">Audio Devotionals</string>
+    <string name="rewind">Rewind 10 seconds</string>
+    <string name="forward">Forward 10 seconds</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    
+    <!-- Prayer Reminder -->
+    <string name="prayer_reminder">Prayer Reminder</string>
+    <string name="reminder_name">Reminder Name</string>
+    <string name="enter_reminder_name">Enter reminder name</string>
+    <string name="reminder_time">Reminder Time</string>
+    <string name="select_time">Select Time</string>
+    <string name="save_reminder">Save Reminder</string>
+    <string name="reminder_saved">Prayer reminder saved successfully!</string>
+    <string name="reminder_error">Failed to save prayer reminder</string>
+    <string name="prayer_time">Time for Prayer</string>
+    <string name="prayer_notification_title">Prayer Reminder</string>
+    <string name="prayer_notification_text">It\'s time for your prayer: %s</string>
+    
+    <!-- Prayer Reminder Card -->
+    <string name="set_reminder">Set Reminder</string>
+    <string name="prayer_reminder_description">Set daily prayer reminders to maintain your spiritual routine and stay connected with God.</string>
+    <string name="set_prayer_reminder">Set Prayer Reminder</string>
+    <string name="reminder_active">Reminder Active</string>
+    <string name="reminder_set_for">Reminder set for %s</string>
+    <string name="manage">Manage</string>
+    <string name="edit_reminder">Edit Reminder</string>
+    <string name="delete_reminder">Delete Reminder</string>
+    <string name="reminder_deleted">Prayer reminder deleted successfully!</string>
+    <string name="snooze">Snooze</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="snooze_5_min">Snooze 5 min</string>
+    <string name="snooze_15_min">Snooze 15 min</string>
+    <string name="snooze_30_min">Snooze 30 min</string>
+    <string name="saved_alarms">Saved Alarms</string>
+    <string name="set_alarm">Set Alarm</string>
+    <string name="alarm_name">Alarm Name</string>
+    <string name="select_days">Select Days</string>
+    <string name="save_alarm">Save Alarm</string>
+    <string name="alarm_saved">Alarm saved successfully!</string>
+    <string name="alarm_updated">Alarm updated successfully!</string>
+    <string name="no_alarms">No alarms set yet</string>
+    <string name="add_first_alarm">Add your first prayer alarm</string>
+    <string name="current_time">Current Time</string>
+    <string name="daily_verse">Daily Verse</string>
+    <string name="stop_alarm">Stop Alarm</string>
+</resources>

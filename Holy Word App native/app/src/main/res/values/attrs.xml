@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Custom color attributes for Holy Word App -->
+    <attr name="colorSuccess" format="color" />
+    <attr name="colorWarning" format="color" />
+    <attr name="colorInfo" format="color" />
+    <attr name="colorError" format="color" />
+    <attr name="colorAccent" format="color" />
+</resources>
