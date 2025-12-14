@@ -31,7 +31,7 @@ class DatabaseService {
 
     // For user data (notes), we don't copy from assets, we create schema
     if (dbName == 'holy_word_user.db') {
-      return await openDatabase(path, version: 1,
+      return await openDatabase(path, version: 2,
           onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE notes (
@@ -40,6 +40,22 @@ class DatabaseService {
             reference TEXT NOT NULL,
             note_content TEXT,
             created_at TEXT NOT NULL
+          );
+          CREATE TABLE notes_v2 (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            content TEXT,
+            created_at TEXT NOT NULL
+          );
+          CREATE TABLE note_verses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            note_id INTEGER NOT NULL,
+            book_id INTEGER NOT NULL,
+            chapter INTEGER NOT NULL,
+            verse INTEGER NOT NULL,
+            verse_text TEXT NOT NULL,
+            reference TEXT NOT NULL,
+            FOREIGN KEY(note_id) REFERENCES notes_v2(id) ON DELETE CASCADE
           );
           CREATE TABLE highlights (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,6 +66,28 @@ class DatabaseService {
             created_at TEXT NOT NULL
           );
         ''');
+      }, onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          // Migration from Version 1 to 2
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS notes_v2 (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              title TEXT NOT NULL,
+              content TEXT,
+              created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS note_verses (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              note_id INTEGER NOT NULL,
+              book_id INTEGER NOT NULL,
+              chapter INTEGER NOT NULL,
+              verse INTEGER NOT NULL,
+              verse_text TEXT NOT NULL,
+              reference TEXT NOT NULL,
+              FOREIGN KEY(note_id) REFERENCES notes_v2(id) ON DELETE CASCADE
+            );
+          ''');
+        }
       });
     }
 

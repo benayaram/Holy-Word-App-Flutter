@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:holy_word_app/core/services/database_service.dart';
 import 'package:holy_word_app/core/providers/language_provider.dart';
@@ -268,8 +269,6 @@ class BibleService {
 
   Future<List<Map<String, dynamic>>> getCrossReferences(
       int bookId, int chapter, int verse) async {
-    // Cross References DB uses Telugu Book Names in 'source_book' column
-    // regardless of the app language.
     if (bookId < 1 || bookId > _teluguBooks.length) return [];
     final teluguBookName = _teluguBooks[bookId - 1];
 
@@ -277,7 +276,79 @@ class BibleService {
         'cross_references.db',
         'SELECT * FROM cross_references WHERE source_book = ? AND source_chapter = ? AND source_verse = ?',
         [teluguBookName, chapter, verse]);
-    return refs;
+
+    // Enhance refs with text and BookID
+    final List<Map<String, dynamic>> enhancedRefs = [];
+
+    for (var r in refs) {
+      final refBookName = r['reference_book'] as String;
+      final refChapter = r['reference_chapter'] as int;
+      final refVerse = r['reference_verse'] as int;
+      String? refText = r['reference_text'] as String?;
+
+      // Find Book ID
+      int? refBookId;
+
+      // Normalize Ref Book Name (Handle I/II/III vs 1/2/3)
+      var cleanRefBook = refBookName.trim();
+      cleanRefBook = cleanRefBook.replaceAll(RegExp(r'^I\s'), '1 ');
+      cleanRefBook = cleanRefBook.replaceAll(RegExp(r'^II\s'), '2 ');
+      cleanRefBook = cleanRefBook.replaceAll(RegExp(r'^III\s'), '3 ');
+
+      // 1. Try Telugu Exact Match
+      var teluguIndex = _teluguBooks.indexOf(cleanRefBook);
+      if (teluguIndex != -1) {
+        refBookId = teluguIndex + 1;
+      }
+      // 2. Try English Exact/Case-Insensitive Match
+      else {
+        final englishIndex = _englishBooks
+            .indexWhere((b) => b.toLowerCase() == cleanRefBook.toLowerCase());
+        if (englishIndex != -1) {
+          refBookId = englishIndex + 1;
+        } else {
+          // 3. Try standard variations
+          if (cleanRefBook.toLowerCase() == 'psalm') cleanRefBook = 'Psalms';
+          if (cleanRefBook.toLowerCase() == 'song of songs')
+            cleanRefBook = 'Song of Solomon';
+
+          final retryIndex = _englishBooks
+              .indexWhere((b) => b.toLowerCase() == cleanRefBook.toLowerCase());
+          if (retryIndex != -1) refBookId = retryIndex + 1;
+        }
+      }
+
+      // If we found a Book ID and Text is missing, fetch it
+      if (refBookId != null && (refText == null || refText.isEmpty)) {
+        try {
+          // Fetch using CURRENT app language (to match user preference)
+          final rawVerses = await getVerses(refBookId, refChapter);
+          final verses = List<Map<String, dynamic>>.from(rawVerses);
+
+          final matchedVerse = verses.firstWhere((v) {
+            final vNum = v['verse'];
+            // Handle potential type mismatch if DB returns string
+            final vInt =
+                vNum is int ? vNum : int.tryParse(vNum.toString()) ?? 0;
+            return vInt == refVerse;
+          }, orElse: () => <String, dynamic>{});
+
+          if (matchedVerse.isNotEmpty) {
+            refText = matchedVerse['text'] ?? matchedVerse['telugu_text'];
+          }
+        } catch (e) {
+          debugPrint('Error fetching ref text: $e');
+        }
+      }
+
+      enhancedRefs.add({
+        ...r,
+        'reference_text': refText,
+        'reference_book_id': refBookId, // Store ID for navigation
+      });
+    }
+
+    return enhancedRefs;
   }
 
   // --- User Data Methods ---

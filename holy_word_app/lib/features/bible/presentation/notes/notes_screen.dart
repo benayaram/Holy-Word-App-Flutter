@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:holy_word_app/features/bible/services/notes_service.dart';
+import 'note_detail_screen.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -20,7 +21,7 @@ class _NotesScreenState extends State<NotesScreen> {
 
   void _loadNotes() {
     setState(() {
-      _notesFuture = _notesService.getNotes();
+      _notesFuture = _notesService.getNotesV2();
     });
   }
 
@@ -46,7 +47,8 @@ class _NotesScreenState extends State<NotesScreen> {
                 children: [
                   Icon(Icons.note_alt_outlined, size: 64, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('No notes yet', style: TextStyle(color: Colors.grey)),
+                  Text('No notes available',
+                      style: TextStyle(color: Colors.grey)),
                 ],
               ),
             );
@@ -58,47 +60,64 @@ class _NotesScreenState extends State<NotesScreen> {
             itemCount: notes.length,
             itemBuilder: (context, index) {
               final note = notes[index];
-              return Card(
-                elevation: 2,
-                margin: const EdgeInsets.only(bottom: 12),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+              return Dismissible(
+                key: Key(note['id'].toString()),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  color: Colors.red,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                onDismissed: (_) async {
+                  await _notesService.deleteNoteV2(note['id']);
+                },
+                child: Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    title: Text(
+                      note['title'],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        if (note['content'] != null &&
+                            note['content'].toString().isNotEmpty)
                           Text(
-                            note['reference'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                            note['content'],
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: Colors.grey[700]),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, size: 20),
-                            onPressed: () async {
-                              await _notesService.deleteNote(note['id']);
-                              _loadNotes();
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        note['verse_text'],
-                        style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey[600],
+                        const SizedBox(height: 8),
+                        Text(
+                          DateTime.parse(note['created_at'])
+                              .toLocal()
+                              .toString()
+                              .split('.')[0],
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[500]),
                         ),
-                      ),
-                      if (note['note_content'] != null &&
-                          note['note_content'].toString().isNotEmpty) ...[
-                        const Divider(height: 24),
-                        Text(note['note_content']),
                       ],
-                    ],
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios,
+                        size: 16, color: Colors.grey),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              NoteDetailScreen(noteId: note['id']),
+                        ),
+                      ).then((_) => _loadNotes()); // Refresh on return
+                    },
                   ),
                 ),
               );

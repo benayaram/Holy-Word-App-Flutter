@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'bible_screen.dart';
 import 'notes/notes_screen.dart';
+import 'cross_reference_tool_screen.dart';
+import 'highlights_screen.dart';
 
 class BibleToolsScreen extends StatelessWidget {
   const BibleToolsScreen({super.key});
@@ -77,7 +79,27 @@ class BibleToolsScreen extends StatelessWidget {
             title: 'Cross References',
             color: Colors.orange.shade100,
             iconColor: Colors.orange,
-            onTap: () => _showComingSoonDialog(context, 'Cross References'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const CrossReferenceToolScreen()),
+              );
+            },
+          ),
+          _buildToolCard(
+            context,
+            icon: Icons.highlight, // Highlighting icon
+            title: 'Highlights',
+            color: Colors.yellow.shade100,
+            iconColor: Colors.orange, // Slightly darker for visibility
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const HighlightsScreen()),
+              );
+            },
           ),
           _buildToolCard(
             context,
