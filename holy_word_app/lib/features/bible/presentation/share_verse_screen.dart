@@ -49,13 +49,13 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
         widget.verseNumbers == null) return;
 
     final bibleService = ref.read(bibleServiceProvider);
-    final text = await bibleService.getParallelVerses(
+    final result = await bibleService.getParallelVerses(
         widget.bookId!, widget.chapter!, widget.verseNumbers!);
 
     if (mounted) {
       setState(() {
         // Append reference to the secondary text so it appears in the draggable widget
-        _secondaryText = "$text\n\n${widget.verseReference}";
+        _secondaryText = "${result['text']}\n\n${result['reference']}";
       });
     }
   }
@@ -986,6 +986,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                       gradientColors: _verseGradientColors,
                                       begin: _verseGradientBegin,
                                       end: _verseGradientEnd,
+                                      goldTint: _verseEffectColor,
                                       _isVerseDynamic
                                           ? AutoSizeText(
                                               widget.verseText,
@@ -1081,6 +1082,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                       gradientColors: _refGradientColors,
                                       begin: _refGradientBegin,
                                       end: _refGradientEnd,
+                                      goldTint: _refEffectColor,
                                       Text(
                                         widget.verseReference,
                                         textAlign: _refAlign,
@@ -1158,15 +1160,6 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                         }),
                       ),
                     ),
-                  ),
-                ),
-                Positioned(
-                  top: 40,
-                  right: 20,
-                  child: FloatingActionButton.small(
-                    backgroundColor: Colors.black54,
-                    child: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => setState(() => _isPreviewMode = false),
                   ),
                 ),
               ],
@@ -1256,6 +1249,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                                 _verseGradientColors,
                                             begin: _verseGradientBegin,
                                             end: _verseGradientEnd,
+                                            goldTint: _verseEffectColor,
                                             _isVerseDynamic
                                                 ? AutoSizeText(
                                                     widget.verseText,
@@ -1370,6 +1364,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                             gradientColors: _refGradientColors,
                                             begin: _refGradientBegin,
                                             end: _refGradientEnd,
+                                            goldTint: _refEffectColor,
                                             Text(
                                               widget.verseReference,
                                               textAlign: _refAlign,
@@ -1430,6 +1425,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                                   _secGradientColors,
                                               begin: _secGradientBegin,
                                               end: _secGradientEnd,
+                                              goldTint: _secEffectColor,
                                               AutoSizeText(
                                                 _secondaryText,
                                                 textAlign: _secTextAlign,

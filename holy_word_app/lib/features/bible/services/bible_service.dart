@@ -232,21 +232,18 @@ class BibleService {
     }
   }
 
-  Future<String> getParallelVerses(
+  Future<Map<String, String>> getParallelVerses(
       int bookId, int chapter, List<int> verseNumbers) async {
     try {
       // Determine target DB (opposite of current)
-      final useTeluguDb =
-          !_isTelugu; // If current is Telugu, we want English (false). If current is English, we want Telugu (true).
-
-      // ERROR CORRECTION: The logic above is incorrect based on "Parallel".
+      final useTeluguDb = !_isTelugu;
       // If App Language is Telugu (_isTelugu = true), we want English text. So target is English (useTeluguDb = false).
       // If App Language is English (_isTelugu = false), we want Telugu text. So target is Telugu (useTeluguDb = true).
-      // So useTeluguDb = !_isTelugu is correct.
 
       final targetDbName = useTeluguDb ? 'bsi_te.db' : 'KJV.db';
 
       List<String> texts = [];
+      String bookName = '';
 
       if (useTeluguDb) {
         // Fetch Telugu Verses
@@ -259,9 +256,12 @@ class BibleService {
             texts.add('${res.first['t']}');
           }
         }
+        // Get Telugu Book Name
+        if (bookId >= 1 && bookId <= _teluguBooks.length) {
+          bookName = _teluguBooks[bookId - 1];
+        }
       } else {
         // Fetch English Verses
-        // Construct WHERE clause for efficiency or loop
         final placeholders = List.filled(verseNumbers.length, '?').join(',');
         final res = await _dbService.rawQuery(
             targetDbName,
@@ -271,12 +271,45 @@ class BibleService {
         for (var r in res) {
           texts.add('${r['text']}');
         }
+
+        // Get English Book Name
+        if (bookId >= 1 && bookId <= _englishBooks.length) {
+          bookName = _englishBooks[bookId - 1];
+        }
       }
 
-      return texts.join('\n');
+      // Combine verses
+      String fullText = texts.join('\n');
+
+      // Construct reference (e.g., "Genesis 1:1" or "ఆదికాండము 1:1")
+      // Use the *target* language book name
+      // Logic: If verseNumbers has mutliple, handle range. Simplified for now as singular or comma separated is common,
+      // but usually this is called with 'verseNumbers' list.
+      // Let's format: "Book Chapter:Verse" (start) - end??
+      // The calling screen usually formats the reference.
+      // For now, let's just return the Book Name so the screen can construct it,
+      // or construct a simple one. The screen calls it 'verseReference'.
+      // Let's replicate standard format: "$bookName $chapter:${verseNumbers.first}"
+
+      // Better: Just return the Book Name so the UI can format it if needed,
+      // OR return the full reference string.
+      // The UI uses `widget.verseReference`.
+      // Let's return the simplified reference using the *Parallel* language book name.
+
+      String verseRef = "";
+      if (verseNumbers.isNotEmpty) {
+        if (verseNumbers.length == 1) {
+          verseRef = "$bookName $chapter:${verseNumbers.first}";
+        } else {
+          verseRef =
+              "$bookName $chapter:${verseNumbers.first}-${verseNumbers.last}"; // Simplified range
+        }
+      }
+
+      return {'text': fullText, 'reference': verseRef};
     } catch (e) {
       debugPrint("Error fetching parallel verses: $e");
-      return "";
+      return {'text': "", 'reference': ""};
     }
   }
 
