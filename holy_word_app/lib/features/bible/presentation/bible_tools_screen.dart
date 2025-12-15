@@ -3,6 +3,7 @@ import 'bible_screen.dart';
 import 'notes/notes_screen.dart';
 import 'cross_reference_tool_screen.dart';
 import 'highlights_screen.dart';
+import 'audio_bible_screen.dart';
 
 class BibleToolsScreen extends StatelessWidget {
   const BibleToolsScreen({super.key});
@@ -40,7 +41,13 @@ class BibleToolsScreen extends StatelessWidget {
             title: 'Audio Bible',
             color: Colors.purple.shade100,
             iconColor: Colors.purple,
-            onTap: () => _showComingSoonDialog(context, 'Audio Bible'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const AudioBibleScreen()),
+              );
+            },
           ),
           _buildToolCard(
             context,

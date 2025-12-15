@@ -31,6 +31,9 @@ dependencies:
   sqflite_common_ffi_web: ^1.0.2
   intl: ^0.20.2
   scrollable_positioned_list: ^0.3.8
+  image_picker: ^1.2.1
+  auto_size_text: ^3.0.0
+  flutter_colorpicker: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -50,3 +53,69 @@ flutter:
   assets:
     - assets/images/
     - assets/database/
+    - assets/fonts/
+
+  fonts:
+    - family: Annamayya
+      fonts:
+        - asset: assets/fonts/annamayya.otf
+        - asset: assets/fonts/annamayya_bold.otf
+          weight: 700
+    - family: Dhurjati
+      fonts:
+        - asset: assets/fonts/dhurjati.otf
+    - family: Gidugu
+      fonts:
+        - asset: assets/fonts/gidugu.otf
+    - family: Gurajada
+      fonts:
+        - asset: assets/fonts/gurajada.otf
+    - family: LakkiReddy
+      fonts:
+        - asset: assets/fonts/lakkireddy.ttf
+    - family: Mallanna
+      fonts:
+        - asset: assets/fonts/mallanna.otf
+    - family: Mandali
+      fonts:
+        - asset: assets/fonts/mandali_regular.ttf
+        - asset: assets/fonts/mandali_bold.ttf
+          weight: 700
+    - family: Nandakam
+      fonts:
+        - asset: assets/fonts/nandakam.otf
+    - family: NATS
+      fonts:
+        - asset: assets/fonts/nats.otf
+    - family: NTR
+      fonts:
+        - asset: assets/fonts/ntr.otf
+    - family: Peddana
+      fonts:
+        - asset: assets/fonts/peddana_regular.ttf
+    - family: Potti Sreeramulu
+      fonts:
+        - asset: assets/fonts/potti_sreeramulu.ttf
+    - family: Ramabhadra
+      fonts:
+        - asset: assets/fonts/ramabhadra_regular.ttf
+    - family: Ramaneeyawin
+      fonts:
+        - asset: assets/fonts/ramaneeyawin.ttf
+    - family: RaviPrakash
+      fonts:
+        - asset: assets/fonts/raviprakash.ttf
+    - family: Sree Krushnadevaraya
+      fonts:
+        - asset: assets/fonts/sree_krushnadevaraya.otf
+    - family: Suranna
+      fonts:
+        - asset: assets/fonts/suranna_regular.otf
+        - asset: assets/fonts/suranna_bold.otf
+          weight: 700
+    - family: Suravaram
+      fonts:
+        - asset: assets/fonts/suravaram.otf
+    - family: Syamala Ramana
+      fonts:
+        - asset: assets/fonts/syamala_ramana.otf

@@ -232,6 +232,54 @@ class BibleService {
     }
   }
 
+  Future<String> getParallelVerses(
+      int bookId, int chapter, List<int> verseNumbers) async {
+    try {
+      // Determine target DB (opposite of current)
+      final useTeluguDb =
+          !_isTelugu; // If current is Telugu, we want English (false). If current is English, we want Telugu (true).
+
+      // ERROR CORRECTION: The logic above is incorrect based on "Parallel".
+      // If App Language is Telugu (_isTelugu = true), we want English text. So target is English (useTeluguDb = false).
+      // If App Language is English (_isTelugu = false), we want Telugu text. So target is Telugu (useTeluguDb = true).
+      // So useTeluguDb = !_isTelugu is correct.
+
+      final targetDbName = useTeluguDb ? 'bsi_te.db' : 'KJV.db';
+
+      List<String> texts = [];
+
+      if (useTeluguDb) {
+        // Fetch Telugu Verses
+        // ID calculation
+        for (var vNum in verseNumbers) {
+          final id = bookId * 1000000 + chapter * 1000 + vNum;
+          final res = await _dbService
+              .rawQuery(targetDbName, 'SELECT t FROM verse WHERE id = ?', [id]);
+          if (res.isNotEmpty) {
+            texts.add('${res.first['t']}');
+          }
+        }
+      } else {
+        // Fetch English Verses
+        // Construct WHERE clause for efficiency or loop
+        final placeholders = List.filled(verseNumbers.length, '?').join(',');
+        final res = await _dbService.rawQuery(
+            targetDbName,
+            'SELECT text FROM KJV_verses WHERE book_id = ? AND chapter = ? AND verse IN ($placeholders) ORDER BY verse',
+            [bookId, chapter, ...verseNumbers]);
+
+        for (var r in res) {
+          texts.add('${r['text']}');
+        }
+      }
+
+      return texts.join('\n');
+    } catch (e) {
+      debugPrint("Error fetching parallel verses: $e");
+      return "";
+    }
+  }
+
   Future<List<Map<String, dynamic>>> searchVerses(String query) async {
     if (_isTelugu) {
       final result = await _dbService.rawQuery(
@@ -341,8 +389,23 @@ class BibleService {
         }
       }
 
+      // Localize Book Name for Display
+      String displayBookName = refBookName;
+      if (refBookId != null) {
+        if (_isTelugu) {
+          if (refBookId > 0 && refBookId <= _teluguBooks.length) {
+            displayBookName = _teluguBooks[refBookId - 1];
+          }
+        } else {
+          if (refBookId > 0 && refBookId <= _englishBooks.length) {
+            displayBookName = _englishBooks[refBookId - 1];
+          }
+        }
+      }
+
       enhancedRefs.add({
         ...r,
+        'reference_book': displayBookName, // Overwritten with localized name
         'reference_text': refText,
         'reference_book_id': refBookId, // Store ID for navigation
       });

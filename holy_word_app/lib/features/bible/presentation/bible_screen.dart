@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart'; // For Clipboard
-import 'package:share_plus/share_plus.dart'; // For Share
-import 'package:screenshot/screenshot.dart'; // For Share Image
+import 'package:share_plus/share_plus.dart';
+// For Share Image
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:holy_word_app/l10n/app_localizations.dart';
+// import 'package:holy_word_app/l10n/app_localizations.dart'; // Unused
+
 import 'package:holy_word_app/core/providers/language_provider.dart';
 import '../services/bible_service.dart';
 import '../services/highlights_service.dart';
 import '../services/notes_service.dart';
 import 'bible_search_delegate.dart';
 import 'bible_tools_screen.dart';
+import 'widgets/bible_location_selector.dart';
+import 'widgets/audio_player_widget.dart'; // Import Audio Widget
+import 'share_verse_screen.dart'; // Import Share Screen
 import 'widgets/cross_references_dialog.dart';
 import 'widgets/add_note_dialog.dart';
 
@@ -46,13 +50,14 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
   // Multi-Selection State
   final Set<int> _selectedVerseIndexes = {};
   bool _isSelectionMode = false;
-  final ScreenshotController _screenshotController = ScreenshotController();
+
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
   int? _targetScrollVerse;
 
   bool _isLoading = true;
+  bool _isAudioPlayerVisible = false; // Audio State
 
   @override
   void initState() {
@@ -157,45 +162,13 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
           _targetScrollVerse = null; // Reset
         });
       }
-
-      // Scroll to target verse if set
-      if (_targetScrollVerse != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final index = _verses
-              .indexWhere((v) => (v['verse'] as int) == _targetScrollVerse);
-          if (index != -1) {
-            _itemScrollController.jumpTo(index: index);
-            // Optional: Highlight briefly?
-          }
-          _targetScrollVerse = null; // Reset
-        });
-      }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
       debugPrint('Error loading verses: $e');
     }
   }
 
-  void _onBookChanged(int? newBookId) {
-    if (newBookId != null && newBookId != _selectedBookId) {
-      setState(() {
-        _selectedBookId = newBookId;
-        _selectedChapter = 1; // Reset chapter
-        _selectedVerse = 1; // Reset verse
-      });
-      _loadChapters();
-    }
-  }
-
-  void _onChapterChanged(int? newChapter) {
-    if (newChapter != null && newChapter != _selectedChapter) {
-      setState(() {
-        _selectedChapter = newChapter;
-        _selectedVerse = 1; // Reset verse
-      });
-      _loadVerses();
-    }
-  }
+  // Removed unused _onBookChanged and _onChapterChanged
 
   void _onVerseSelected(int index) {
     setState(() {
@@ -260,69 +233,6 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
     textBuffer.write('\n$bookName $_selectedChapter');
 
     Share.share(textBuffer.toString());
-    _clearSelection();
-  }
-
-  Future<void> _handleShareImage() async {
-    final selectedVerses = _verses
-        .where((v) => _selectedVerseIndexes.contains(_verses.indexOf(v)))
-        .toList();
-    selectedVerses
-        .sort((a, b) => (a['verse'] as int).compareTo(b['verse'] as int));
-
-    if (selectedVerses.isEmpty) return;
-
-    final book = _books.firstWhere((b) => b['id'] == _selectedBookId);
-    final isTelugu = ref.read(languageProvider) == 'telugu';
-    final bookName =
-        isTelugu ? (book['telugu_name'] ?? book['name']) : book['name'];
-
-    try {
-      final uint8List = await _screenshotController.captureFromWidget(
-        Container(
-          padding: const EdgeInsets.all(20),
-          color: Colors.white,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ...selectedVerses.map((v) {
-                final text =
-                    isTelugu ? (v['telugu_text'] ?? v['text']) : v['text'];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text('${v['verse']} $text',
-                      style:
-                          const TextStyle(fontSize: 18, color: Colors.black)),
-                );
-              }),
-              const SizedBox(height: 16),
-              Text('$bookName $_selectedChapter',
-                  style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey)),
-              const SizedBox(height: 8),
-              const Text('Holy Word App',
-                  style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
-            ],
-          ),
-        ),
-        delay: const Duration(milliseconds: 10),
-      );
-
-      final xFile = XFile.fromData(
-        uint8List,
-        mimeType: 'image/png',
-        name: 'verse_share.png',
-      );
-
-      await Share.shareXFiles([xFile], text: 'Shared from Holy Word App');
-    } catch (e) {
-      debugPrint('Error sharing image: $e');
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error sharing image: $e')));
-    }
     _clearSelection();
   }
 
@@ -427,6 +337,59 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
     );
   }
 
+  void _shareVerse() {
+    if (_selectedVerseIndexes.isEmpty) return;
+
+    final verses = _selectedVerseIndexes.map((index) {
+      final verse = _verses[index];
+      // final verseNum = verse['verse'];
+      final text = ref.read(languageProvider) == 'telugu'
+          ? (verse['telugu_text'] ?? verse['text'])
+          : verse['text'];
+      return text;
+      // return '$verseNum. $text'; // Should we include numbers in image? Maybe not.
+      // Native app just sends text.
+    }).toList();
+
+    final bookName =
+        _getBookName(_selectedBookId, ref.read(languageProvider) == 'telugu');
+
+    // Construct reference (e.g., John 3:16)
+    // If multiple verses: John 3:16-18
+    // Simplify for now, just list verses logic if needed, but let's take first and last.
+    final firstParams = _verses[_selectedVerseIndexes.first];
+    final lastParams = _verses[_selectedVerseIndexes.last];
+    final firstNum = firstParams['verse'];
+    final lastNum = lastParams['verse'];
+
+    String reference = '$bookName $_selectedChapter:$firstNum';
+    if (firstNum != lastNum) {
+      reference += '-$lastNum';
+    }
+
+    final textToShare = verses.join('\n');
+
+    final verseNumbers =
+        _selectedVerseIndexes.map((i) => _verses[i]['verse'] as int).toList();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ShareVerseScreen(
+          verseText: textToShare,
+          verseReference: reference,
+          bookId: _selectedBookId,
+          chapter: _selectedChapter,
+          verseNumbers: verseNumbers,
+        ),
+      ),
+    );
+  }
+
+  void _handleShareImage() {
+    _shareVerse();
+  }
+
   void _handleCrossRef() {
     if (_selectedVerseIndexes.isEmpty) return;
     final firstIndex = _selectedVerseIndexes.first;
@@ -462,19 +425,9 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
   }
 
   void _handleAudioPlay() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Audio Bible"),
-        content: const Text("Playing audio for this chapter..."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
-          ),
-        ],
-      ),
-    );
+    setState(() {
+      _isAudioPlayerVisible = !_isAudioPlayerVisible;
+    });
   }
 
   void _clearSelection() {
@@ -484,6 +437,76 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
     });
   }
 
+  // --- Navigation Logic ---
+
+  void _goToNextChapter() async {
+    if (_chapters.isEmpty) return;
+
+    final currentMaxChapter = _chapters.last;
+    if (_selectedChapter < currentMaxChapter) {
+      setState(() {
+        _selectedChapter++;
+        _selectedVerse = 1;
+        _targetScrollVerse = 1;
+      });
+      _loadVerses();
+    } else {
+      // Go to next book
+      if (_selectedBookId < _books.length) {
+        setState(() {
+          _selectedBookId++;
+          _selectedChapter = 1;
+          _selectedVerse = 1;
+          _targetScrollVerse = 1;
+        });
+        _loadChapters();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('You are at the end of the Bible')));
+      }
+    }
+  }
+
+  void _goToPreviousChapter() async {
+    if (_selectedChapter > 1) {
+      setState(() {
+        _selectedChapter--;
+        _selectedVerse = 1; // Or ideally to last verse? defaulting to 1 for now
+        _targetScrollVerse = 1;
+      });
+      _loadVerses();
+    } else {
+      // Go to previous book
+      if (_selectedBookId > 1) {
+        setState(() {
+          _selectedBookId--;
+          // We need to fetch chapters to know the last chapter.
+          // This breaks the sync flow slightly, but _loadChapters handles it.
+          // We set chapter to 1 initially, but we want last.
+          // A minor limitation - better to default to 1 or implement specific logic.
+          // Let's implement specific logic to go to LAST chapter.
+          _isLoading = true;
+        });
+
+        // Custom loadChapters logic for Previous Book transition
+        final bibleService = ref.read(bibleServiceProvider);
+        final chapters = await bibleService.getChapters(_selectedBookId);
+        if (mounted) {
+          setState(() {
+            _chapters = chapters;
+            _selectedChapter = chapters.isNotEmpty ? chapters.last : 1;
+            _selectedVerse = 1;
+            _targetScrollVerse = 1;
+          });
+          _loadVerses();
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('You are at the start of the Bible')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isTelugu = ref.watch(languageProvider) == 'telugu';
@@ -491,20 +514,50 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(AppLocalizations.of(context)!.bible),
-            const Text(
-              'Read & Listen',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
-            ),
-          ],
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.translate,
+              color: Theme.of(context).colorScheme.primary),
+          onPressed: () {
+            final current = ref.read(languageProvider);
+            ref
+                .read(languageProvider.notifier)
+                .setLanguage(current == 'english' ? 'telugu' : 'english');
+            _loadBooks();
+          },
+          tooltip: 'Switch Language',
         ),
+        title: _books.isEmpty
+            ? const SizedBox()
+            : BibleLocationSelector(
+                bookId: _selectedBookId,
+                chapter: _selectedChapter,
+                verse: _selectedVerse,
+                bookName: _getBookName(_selectedBookId, isTelugu),
+                onSelectionChanged: (bookId, chapter, verse) {
+                  setState(() {
+                    _selectedBookId = bookId;
+                    _selectedChapter = chapter;
+                    _selectedVerse = verse;
+                    _targetScrollVerse = verse; // prepare to scroll
+                  });
+                  // Reload if book/chapter changed
+                  if (bookId != _selectedBookId) {
+                    _loadChapters();
+                  } else if (chapter != _selectedChapter) {
+                    _loadVerses();
+                  } else {
+                    _scrollToVerse(verse); // Just scroll
+                  }
+                },
+              ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.headphones),
+            icon: const Icon(Icons.headphones_outlined),
             onPressed: _handleAudioPlay,
+            color: Colors.black87,
             tooltip: 'Audio Bible',
           ),
           IconButton(
@@ -513,6 +566,7 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
               context: context,
               delegate: BibleSearchDelegate(ref),
             ),
+            color: Colors.black87,
           ),
           IconButton(
             icon: const Icon(Icons.grid_view),
@@ -520,175 +574,102 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
               context,
               MaterialPageRoute(builder: (context) => const BibleToolsScreen()),
             ),
+            color: Colors.black87,
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          _buildSpinnersRow(isTelugu),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _buildVerseList(isTelugu),
-          ),
-          if (_isSelectionMode) _buildContextActionBar(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSpinnersRow(bool isTelugu) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      color: Colors.white,
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: _buildSpinnerCard(
-              DropdownButton<int>(
-                value: _books.any((b) => b['id'] == _selectedBookId)
-                    ? _selectedBookId
-                    : null,
-                isExpanded: true,
-                underline: const SizedBox(),
-                hint: const Text("Select Book"),
-                items: _books.map((book) {
-                  return DropdownMenuItem<int>(
-                    value: book['id'] as int,
-                    child: Text(
-                      isTelugu
-                          ? (book['telugu_name'] ?? book['name'])
-                          : book['name'],
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  );
-                }).toList(),
-                onChanged: _onBookChanged,
+          Column(
+            children: [
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : GestureDetector(
+                        onHorizontalDragEnd: (details) {
+                          // Swipe Logic
+                          // Primary Velocity: +ve (Right) -> Prev, -ve (Left) -> Next
+                          if (details.primaryVelocity! < 0) {
+                            _goToNextChapter();
+                          } else if (details.primaryVelocity! > 0) {
+                            _goToPreviousChapter();
+                          }
+                        },
+                        child: _buildVerseList(isTelugu),
+                      ),
               ),
-            ),
+              if (_isSelectionMode) _buildContextActionBar(),
+              if (_isAudioPlayerVisible)
+                AudioPlayerWidget(
+                  bookId: _selectedBookId,
+                  chapter: _selectedChapter,
+                  bookName: _getBookName(_selectedBookId, isTelugu),
+                  isTelugu: isTelugu,
+                  onClose: () => setState(() => _isAudioPlayerVisible = false),
+                ),
+            ],
           ),
-          const SizedBox(width: 4),
-          Expanded(
-            flex: 1,
-            child: _buildSpinnerCard(
-              DropdownButton<int>(
-                value: _chapters.contains(_selectedChapter)
-                    ? _selectedChapter
-                    : null,
-                isExpanded: true,
-                underline: const SizedBox(),
-                hint: const Text("Ch"),
-                items: _chapters.map((chapter) {
-                  return DropdownMenuItem<int>(
-                    value: chapter,
-                    child: Text('$chapter'),
-                  );
-                }).toList(),
-                onChanged: _onChapterChanged,
-              ),
-            ),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            flex: 1,
-            child: _buildSpinnerCard(
-              DropdownButton<int>(
-                value: _selectedVerse,
-                isExpanded: true,
-                underline: const SizedBox(),
-                items: _verses.isEmpty
-                    ? [const DropdownMenuItem<int>(value: 1, child: Text('1'))]
-                    : _verses.map((v) {
-                        final vNum = v['verse'] as int;
-                        return DropdownMenuItem<int>(
-                          value: vNum,
-                          child: Text('$vNum'),
-                        );
-                      }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      _selectedVerse = val;
-                      // Close keyboard or other UI if needed? No.
-                    });
-                    final index = _verses.indexWhere((v) => v['verse'] == val);
-                    if (index != -1) {
-                      _itemScrollController.jumpTo(index: index);
-                    }
-                  }
-                },
-              ),
-            ),
-          ),
-          const SizedBox(width: 4),
-          Card(
-            elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            color: Theme.of(context).primaryColor,
-            child: InkWell(
-              onTap: () {
-                // 1. Capture current top visible verse
-                try {
-                  final positions = _itemPositionsListener.itemPositions.value;
-                  if (positions.isNotEmpty) {
-                    // Find the item with the smallest index that is visible
-                    final sorted = positions.toList()
-                      ..sort((a, b) => a.index.compareTo(b.index));
-                    final topItem = sorted.first;
-                    final index = topItem.index;
-                    if (index >= 0 && index < _verses.length) {
-                      final verseNum = _verses[index]['verse'] as int;
-                      _targetScrollVerse = verseNum;
-                      _selectedVerse = verseNum; // Also sync dropdown
-                    }
-                  }
-                } catch (e) {
-                  debugPrint('Error preserving scroll position: $e');
-                }
-
-                final current = ref.read(languageProvider);
-                ref
-                    .read(languageProvider.notifier)
-                    .setLanguage(current == 'english' ? 'telugu' : 'english');
-                // Reload on language change. Books are reloaded on build via Consumer/watch,
-                // but explicit reload ensures everything syncs.
-                _loadBooks();
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Text(
-                  isTelugu ? 'EN' : 'TE',
-                  style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+          // Navigation Arrows (Floating Bottom Bar style)
+          if (!_isSelectionMode)
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios, size: 20),
+                        onPressed: _goToPreviousChapter,
+                        tooltip: 'Previous Chapter',
+                        color: Colors.grey[800],
+                      ),
+                      Container(
+                        width: 1,
+                        height: 24,
+                        color: Colors.grey[300],
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward_ios, size: 20),
+                        onPressed: _goToNextChapter,
+                        tooltip: 'Next Chapter',
+                        color: Colors.grey[800],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildSpinnerCard(Widget child) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: child,
-      ),
-    );
-  }
+  // Removed _buildSpinnersRow
+
+  // Removed _buildSpinnerCard
 
   Widget _buildVerseList(bool isTelugu) {
     return ScrollablePositionedList.builder(
       itemScrollController: _itemScrollController,
       itemPositionsListener: _itemPositionsListener,
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       itemCount: _verses.length,
       itemBuilder: (context, index) {
         final verse = _verses[index];
@@ -700,44 +681,71 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
         final highlightColor = _highlights[verseNum];
         final hasNote = _versesWithNotes.contains(verseNum);
 
-        return InkWell(
-          onTap: () => _onVerseSelected(index),
+        return GestureDetector(
+          onTap: () {
+            if (_isSelectionMode) {
+              _onVerseSelected(index);
+            } else {
+              // Toggle context mode or simple tap
+            }
+          },
+          onLongPress: () => _onVerseSelected(index),
           child: Container(
-            margin: const EdgeInsets.only(bottom: 4),
-            padding: const EdgeInsets.all(8),
-            // Apply highlight color with opacity, or selection color
-            color: isSelected
-                ? Colors.blue.withOpacity(0.2)
-                : (highlightColor != null
-                    ? Color(highlightColor).withOpacity(0.3)
-                    : Colors.transparent),
-            child: Row(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
+                  : (highlightColor != null
+                      ? Color(highlightColor).withOpacity(0.3)
+                      : Colors.white),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: isSelected
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      )
+                    ],
+            ),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(children: [
-                  Text(
-                    '$verseNum',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey,
-                      fontSize: 14,
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '$verseNum',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
-                  if (hasNote)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 4.0),
-                      child: Icon(Icons.note, size: 12, color: Colors.blue),
-                    ),
-                ]),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    text,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                      color: Color(0xFF333333),
-                    ),
+                    const Spacer(),
+                    if (hasNote)
+                      const Icon(Icons.note, size: 16, color: Colors.amber),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 18,
+                    height: 1.6,
+                    color: Colors.grey[800],
+                    fontFamily: 'Roboto', // Or standard clean font
                   ),
                 ),
               ],
@@ -746,6 +754,20 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
         );
       },
     );
+  }
+
+  String _getBookName(int bookId, bool isTelugu) {
+    final book = _books.firstWhere((b) => b['id'] == bookId, orElse: () => {});
+    if (book.isEmpty) return '';
+    return isTelugu ? (book['telugu_name'] ?? book['name']) : book['name'];
+  }
+
+  void _scrollToVerse(int verse) {
+    if (_verses.isEmpty) return;
+    final index = _verses.indexWhere((v) => v['verse'] == verse);
+    if (index != -1 && _itemScrollController.isAttached) {
+      _itemScrollController.jumpTo(index: index);
+    }
   }
 
   Widget _buildContextActionBar() {

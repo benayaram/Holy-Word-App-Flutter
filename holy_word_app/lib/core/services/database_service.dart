@@ -13,12 +13,26 @@ class DatabaseService {
   DatabaseService._internal();
 
   static final Map<String, Database> _databases = {};
+  static final Map<String, Future<Database>> _initFutures = {};
 
   Future<Database> getDatabase(String dbName) async {
     if (_databases.containsKey(dbName)) return _databases[dbName]!;
-    final db = await _initDatabase(dbName);
-    _databases[dbName] = db;
-    return db;
+
+    // Prevent race conditions by caching the future
+    if (_initFutures.containsKey(dbName)) return _initFutures[dbName]!;
+
+    final future = _initDatabase(dbName);
+    _initFutures[dbName] = future;
+
+    try {
+      final db = await future;
+      _databases[dbName] = db;
+      _initFutures.remove(dbName);
+      return db;
+    } catch (e) {
+      _initFutures.remove(dbName);
+      rethrow;
+    }
   }
 
   Future<Database> _initDatabase(String dbName) async {
@@ -31,64 +45,18 @@ class DatabaseService {
 
     // For user data (notes), we don't copy from assets, we create schema
     if (dbName == 'holy_word_user.db') {
-      return await openDatabase(path, version: 2,
-          onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE notes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            verse_text TEXT NOT NULL,
-            reference TEXT NOT NULL,
-            note_content TEXT,
-            created_at TEXT NOT NULL
-          );
-          CREATE TABLE notes_v2 (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            content TEXT,
-            created_at TEXT NOT NULL
-          );
-          CREATE TABLE note_verses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            note_id INTEGER NOT NULL,
-            book_id INTEGER NOT NULL,
-            chapter INTEGER NOT NULL,
-            verse INTEGER NOT NULL,
-            verse_text TEXT NOT NULL,
-            reference TEXT NOT NULL,
-            FOREIGN KEY(note_id) REFERENCES notes_v2(id) ON DELETE CASCADE
-          );
-          CREATE TABLE highlights (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            book_id INTEGER NOT NULL,
-            chapter INTEGER NOT NULL,
-            verse INTEGER NOT NULL,
-            color INTEGER NOT NULL,
-            created_at TEXT NOT NULL
-          );
-        ''');
+      final db =
+          await openDatabase(path, version: 3, onCreate: (db, version) async {
+        await _createTables(db);
       }, onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          // Migration from Version 1 to 2
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS notes_v2 (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              title TEXT NOT NULL,
-              content TEXT,
-              created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS note_verses (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              note_id INTEGER NOT NULL,
-              book_id INTEGER NOT NULL,
-              chapter INTEGER NOT NULL,
-              verse INTEGER NOT NULL,
-              verse_text TEXT NOT NULL,
-              reference TEXT NOT NULL,
-              FOREIGN KEY(note_id) REFERENCES notes_v2(id) ON DELETE CASCADE
-            );
-          ''');
-        }
+        await _createTables(db);
       });
+
+      // Robust Check: Ensure tables exist even if migration failed or didn't run
+      // This fixes the "no such table" error for existing users instantly.
+      await _createTables(db);
+
+      return db;
     }
 
     // For Bible and Cross Refs, copy from assets if not exists
@@ -119,6 +87,52 @@ class DatabaseService {
     }
 
     return await openDatabase(path, readOnly: true);
+  }
+
+  Future<void> _createTables(Database db) async {
+    // Create each table separately to ensure reliability
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        verse_text TEXT NOT NULL,
+        reference TEXT NOT NULL,
+        note_content TEXT,
+        created_at TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS notes_v2 (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT,
+        created_at TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS note_verses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        note_id INTEGER NOT NULL,
+        book_id INTEGER NOT NULL,
+        chapter INTEGER NOT NULL,
+        verse INTEGER NOT NULL,
+        verse_text TEXT NOT NULL,
+        reference TEXT NOT NULL,
+        FOREIGN KEY(note_id) REFERENCES notes_v2(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS highlights (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        book_id INTEGER NOT NULL,
+        chapter INTEGER NOT NULL,
+        verse INTEGER NOT NULL,
+        color INTEGER NOT NULL,
+        created_at TEXT NOT NULL
+      )
+    ''');
   }
 
   // Generic query method

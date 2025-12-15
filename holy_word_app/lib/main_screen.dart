@@ -26,40 +26,63 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.favorite_border),
-            selectedIcon: Icon(Icons.favorite),
-            label: 'Devotion',
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.book_outlined),
-            selectedIcon: const Icon(Icons.book),
-            label: AppLocalizations.of(context)!.bible,
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.music_note_outlined),
-            selectedIcon: Icon(Icons.music_note),
-            label: 'Worship',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.mic_none_outlined),
-            selectedIcon: Icon(Icons.mic),
-            label: 'Sermons',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
-            label: 'Community',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          height: 70,
+          elevation: 0,
+          backgroundColor: Colors.white,
+          indicatorColor:
+              Theme.of(context).colorScheme.primary.withOpacity(0.15),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: [
+            NavigationDestination(
+              icon: const Icon(Icons.favorite_outline_rounded),
+              selectedIcon: Icon(Icons.favorite_rounded,
+                  color: Theme.of(context).colorScheme.primary),
+              label: 'Devotion',
+            ),
+            NavigationDestination(
+              icon: const Icon(
+                  Icons.menu_book_rounded), // Using generic book icon
+              selectedIcon: Icon(Icons.menu_book_rounded,
+                  color: Theme.of(context).colorScheme.primary),
+              label: AppLocalizations.of(context)!.bible,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.library_music_outlined),
+              selectedIcon: Icon(Icons.library_music_rounded,
+                  color: Theme.of(context).colorScheme.primary),
+              label: 'Worship',
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.mic_none_outlined),
+              selectedIcon: Icon(Icons.mic_rounded,
+                  color: Theme.of(context).colorScheme.primary),
+              label: 'Sermons',
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.people_outline_rounded),
+              selectedIcon: Icon(Icons.people_rounded,
+                  color: Theme.of(context).colorScheme.primary),
+              label: 'Community',
+            ),
+          ],
+        ),
       ),
     );
   }

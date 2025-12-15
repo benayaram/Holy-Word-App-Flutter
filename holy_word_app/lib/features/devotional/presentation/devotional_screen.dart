@@ -9,6 +9,7 @@ import '../services/prayer_reminder_service.dart';
 import '../services/streak_service.dart';
 import '../../../core/providers/language_provider.dart';
 import 'package:holy_word_app/l10n/app_localizations.dart';
+import '../../bible/presentation/share_verse_screen.dart'; // Import Share Screen
 
 class DevotionalScreen extends ConsumerStatefulWidget {
   const DevotionalScreen({super.key});
@@ -159,6 +160,28 @@ class _DevotionalScreenState extends ConsumerState<DevotionalScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _shareDailyVerse() {
+    if (_dailyVerseData == null) return;
+    final isTelugu = ref.read(languageProvider) == 'telugu';
+
+    final text = isTelugu
+        ? (_dailyVerseData?['telugu'] ?? '')
+        : (_dailyVerseData?['english'] ?? '');
+    final reference = isTelugu
+        ? (_dailyVerseData?['teluguReference'] ?? '')
+        : (_dailyVerseData?['englishReference'] ?? '');
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ShareVerseScreen(
+          verseText: text,
+          verseReference: reference,
+        ),
+      ),
     );
   }
 
@@ -345,6 +368,13 @@ class _DevotionalScreenState extends ConsumerState<DevotionalScreen> {
                         color: Colors.orange.shade100,
                         iconColor: Colors.orange,
                         onTap: _setPrayerReminder,
+                      ),
+                      _buildActionCard(
+                        icon: Icons.share,
+                        title: "Share Verse",
+                        color: Colors.blue.shade100,
+                        iconColor: Colors.blue,
+                        onTap: _shareDailyVerse,
                       ),
                     ],
                   ),
