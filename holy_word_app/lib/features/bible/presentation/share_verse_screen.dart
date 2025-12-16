@@ -16,6 +16,11 @@ import 'package:holy_word_app/features/bible/services/bible_service.dart';
 class ShareVerseScreen extends ConsumerStatefulWidget {
   final String verseText;
   final String verseReference;
+  final int? bookId;
+  final int? chapter;
+  final List<int>? verseNumbers;
+  final String? parallelText;
+  final String? parallelReference;
 
   const ShareVerseScreen({
     super.key,
@@ -24,11 +29,9 @@ class ShareVerseScreen extends ConsumerStatefulWidget {
     this.bookId,
     this.chapter,
     this.verseNumbers,
+    this.parallelText,
+    this.parallelReference,
   });
-
-  final int? bookId;
-  final int? chapter;
-  final List<int>? verseNumbers;
 
   @override
   ConsumerState<ShareVerseScreen> createState() => _ShareVerseScreenState();
@@ -44,6 +47,17 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   }
 
   Future<void> _fetchParallelVerses() async {
+    // If pre-filled parallel data is available, use it directly (e.g. from Daily Verse)
+    if (widget.parallelText != null && widget.parallelReference != null) {
+      if (mounted) {
+        setState(() {
+          _secondaryText = widget.parallelText!;
+          _secondaryReference = widget.parallelReference!;
+        });
+      }
+      return;
+    }
+
     if (widget.bookId == null ||
         widget.chapter == null ||
         widget.verseNumbers == null) return;
@@ -54,8 +68,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
 
     if (mounted) {
       setState(() {
-        // Append reference to the secondary text so it appears in the draggable widget
-        _secondaryText = "${result['text']}\n\n${result['reference']}";
+        _secondaryText = result['text'] ?? '';
+        _secondaryReference = result['reference'] ?? '';
+        // Initialize positions if needed, or rely on Alignment default
       });
     }
   }
@@ -82,7 +97,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   // Dual Language State
   bool _showDual = false;
   String _secondaryText = '';
-  // Secondary Styling (mirror primary initially, but independent)
+  // Offset _secTextPos = Offset.zero; // Unused, replaced by Alignment
+
+  // Secondary Verse Styling
   String _secFont = 'Mandali';
   double _secTextSize = 18.0;
   Color _secColor = Colors.white;
@@ -96,6 +113,25 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   double _secEffectVal = 0.5;
   Color _secEffectColor = Colors.red;
   Alignment _secAlignment = const Alignment(0.0, 0.2);
+
+  // Secondary Reference State
+  String _secondaryReference = '';
+  // Offset _secRefPos = Offset.zero; // Unused, replaced by Alignment
+
+  // Secondary Reference Styling
+  String _secRefFont = 'Mandali';
+  double _secRefSize = 14.0;
+  Color _secRefColor = Colors.white70;
+  TextAlign _secRefAlign = TextAlign.center;
+  bool _secRefBold = false;
+  bool _secRefItalic = false;
+  bool _secRefUnderlined = false;
+  double _secRefOpacity = 1.0;
+  double _secRefLineHeight = 1.2;
+  String _secRefEffect = 'None';
+  double _secRefEffectVal = 0.5;
+  Color _secRefEffectColor = Colors.red;
+  Alignment _secRefAlignment = const Alignment(0.0, 0.4);
 
   // Watermark Style
   int _watermarkStyle = 0;
@@ -112,6 +148,10 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   List<Color> _secGradientColors = [Colors.teal, Colors.blueGrey];
   Alignment _secGradientBegin = Alignment.topLeft;
   Alignment _secGradientEnd = Alignment.bottomRight;
+
+  List<Color> _secRefGradientColors = [Colors.teal, Colors.blueGrey];
+  Alignment _secRefGradientBegin = Alignment.topLeft;
+  Alignment _secRefGradientEnd = Alignment.bottomRight;
 
   // Verse Styling State
   String _verseFont = 'Inter';
@@ -1412,13 +1452,23 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                             });
                                           },
                                           onTap: () => setState(
-                                              () => _editMode = 'Dual'),
+                                              () => _editMode = 'Dual Verse'),
                                           child: Container(
                                             width: constraints.maxWidth *
                                                 _textWidthFactor,
                                             padding: const EdgeInsets.all(12),
                                             // Hide border in preview
-                                            decoration: null,
+                                            decoration: (_editMode ==
+                                                        'Dual Verse' &&
+                                                    !_isExporting)
+                                                ? BoxDecoration(
+                                                    border: Border.all(
+                                                        color: Colors.orange,
+                                                        width: 1.5),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4))
+                                                : null,
                                             child: _applyTextEffect(
                                               _secEffect,
                                               gradientColors:
@@ -1459,6 +1509,80 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                                 stepGranularity: 1,
                                                 wrapWords: true,
                                                 overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
+                                    // Secondary Reference
+                                    if (_showDual &&
+                                        _secondaryReference.isNotEmpty)
+                                      Align(
+                                        alignment: _secRefAlignment,
+                                        child: GestureDetector(
+                                          onPanUpdate: (details) {
+                                            setState(() {
+                                              final dx = details.delta.dx /
+                                                  (constraints.maxWidth / 2);
+                                              final dy = details.delta.dy /
+                                                  (constraints.maxHeight / 2);
+                                              _secRefAlignment +=
+                                                  Alignment(dx, dy);
+                                            });
+                                          },
+                                          onTap: () => setState(
+                                              () => _editMode = 'Dual Ref'),
+                                          child: Container(
+                                            constraints: BoxConstraints(
+                                                maxWidth:
+                                                    constraints.maxWidth * 0.8),
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: (_editMode ==
+                                                        'Dual Ref' &&
+                                                    !_isExporting)
+                                                ? BoxDecoration(
+                                                    border: Border.all(
+                                                        color: Colors.orange,
+                                                        width: 1.5),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4))
+                                                : null,
+                                            child: _applyTextEffect(
+                                              _secRefEffect,
+                                              gradientColors:
+                                                  _secRefGradientColors,
+                                              begin: _secRefGradientBegin,
+                                              end: _secRefGradientEnd,
+                                              goldTint: _secRefEffectColor,
+                                              Text(
+                                                _secondaryReference,
+                                                textAlign: _secRefAlign,
+                                                style: _getFont(
+                                                  _secRefFont,
+                                                  _secRefSize,
+                                                  _secRefEffect == 'Gradient' ||
+                                                          _secRefEffect ==
+                                                              'Gold'
+                                                      ? Colors.white
+                                                      : _secRefColor
+                                                          .withOpacity(
+                                                              _secRefOpacity),
+                                                  _secRefBold
+                                                      ? FontWeight.bold
+                                                      : FontWeight.normal,
+                                                ).copyWith(
+                                                  height: _secRefLineHeight,
+                                                  fontStyle: _secRefItalic
+                                                      ? FontStyle.italic
+                                                      : FontStyle.normal,
+                                                  shadows: _getEffectShadows(
+                                                      _secRefEffect,
+                                                      _hasShadow,
+                                                      _secRefEffectVal,
+                                                      _secRefEffectColor),
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -1564,7 +1688,10 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                             children: [
                               _buildSelectorButton("Verse", Icons.format_quote),
                               _buildSelectorButton("Reference", Icons.bookmark),
-                              _buildSelectorButton("Dual", Icons.translate),
+                              _buildSelectorButton(
+                                  "Dual Verse", Icons.translate),
+                              _buildSelectorButton(
+                                  "Dual Ref", Icons.bookmark_add_outlined),
                               _buildSelectorButton("BG", Icons.image),
                             ],
                           ),
@@ -1795,12 +1922,14 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   }
 
   Widget _buildTextControls() {
-    final isVerse = _editMode == 'Verse';
-    final isDual = _editMode == 'Dual';
-    // isRef is default else
+    // Map variables based on mode
+    bool isVerse = _editMode == 'Verse';
+    bool isDual = _editMode == 'Dual Verse';
+    bool isDualRef = _editMode == 'Dual Ref';
+    // bool isRef = !isVerse && !isDual && !isDualRef; // 'Reference' (Implicit else)
 
     // If Dual Mode is selected but not enabled, show toggle only
-    if (isDual && !_showDual) {
+    if ((isDual || isDualRef) && !_showDual) {
       return Center(
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -1857,7 +1986,6 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
       currentEffect = _verseEffect;
       currentEffectVal = _verseEffectVal;
       currentEffectColor = _verseEffectColor;
-      currentEffectColor = _verseEffectColor;
       // currentAlign = _verseAlign;
       isBold = _isBold;
       isItalic = _isItalic;
@@ -1871,22 +1999,31 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
       currentEffect = _secEffect;
       currentEffectVal = _secEffectVal;
       currentEffectColor = _secEffectColor;
-      currentEffectVal = _secEffectVal;
-      currentEffectColor = _secEffectColor;
       // currentAlign = _secTextAlign; // Mapped state var
       isBold = _secBold;
       isItalic = _secItalic;
       isUnderlined = _secUnderlined;
       currentLineHeight = _secLineHeight;
       currentOpacity = _secOpacity;
+    } else if (isDualRef) {
+      currentFont = _secRefFont;
+      currentColor = _secRefColor;
+      currentSize = _secRefSize;
+      currentEffect = _secRefEffect;
+      currentEffectVal = _secRefEffectVal;
+      currentEffectColor = _secRefEffectColor;
+      // currentAlign = _secRefAlign;
+      isBold = _secRefBold;
+      isItalic = _secRefItalic;
+      isUnderlined = _secRefUnderlined;
+      currentLineHeight = _secRefLineHeight;
+      currentOpacity = _secRefOpacity;
     } else {
       // Reference
       currentFont = _refFont;
       currentColor = _refColor;
       currentSize = _refTextSize;
       currentEffect = _refEffect;
-      currentEffectVal = _refEffectVal;
-      currentEffectColor = _refEffectColor;
       currentEffectVal = _refEffectVal;
       currentEffectColor = _refEffectColor;
       // currentAlign = _refAlign;
@@ -1901,7 +2038,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
       child: Column(
         children: [
           // If Dual, show toggle at top to disable
-          if (isDual)
+          if (isDual || isDualRef)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -2028,6 +2165,8 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                             _verseEffectVal = v;
                           else if (isDual)
                             _secEffectVal = v;
+                          else if (isDualRef)
+                            _secRefEffectVal = v;
                           else
                             _refEffectVal = v;
                         }),
@@ -2082,6 +2221,8 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                           _verseTextSize = val;
                         else if (isDual)
                           _secTextSize = val;
+                        else if (isDualRef)
+                          _secRefSize = val;
                         else
                           _refTextSize = val;
                       });
@@ -2104,6 +2245,8 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                           _isBold = v;
                         else if (isDual)
                           _secBold = v;
+                        else if (isDualRef)
+                          _secRefBold = v;
                         else
                           _refBold = v;
                       })),
@@ -2115,17 +2258,21 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                           _isItalic = v;
                         else if (isDual)
                           _secItalic = v;
+                        else if (isDualRef)
+                          _secRefItalic = v;
                         else
                           _refItalic = v;
                       })),
-              if (isVerse || isDual)
+              if (isVerse || isDual || isDualRef)
                 _buildStyleToggle(
                     Icons.format_underlined,
                     isUnderlined,
                     (v) => setState(() {
                           if (isVerse)
                             _isUnderlined = v;
-                          else if (isDual) _secUnderlined = v;
+                          else if (isDual)
+                            _secUnderlined = v;
+                          else if (isDualRef) _secRefUnderlined = v;
                         })),
               _buildStyleToggle(
                   Icons.text_format, // Shadow
@@ -2137,7 +2284,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
           const SizedBox(height: 8),
 
           // Width Slider (Verse & Dual)
-          if (isVerse || isDual)
+          if (isVerse || isDual || isDualRef)
             Row(
               children: [
                 const Icon(Icons.compare_arrows, size: 16, color: Colors.grey),
@@ -2169,6 +2316,8 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                       _verseLineHeight = v;
                     else if (isDual)
                       _secLineHeight = v;
+                    else if (isDualRef)
+                      _secRefLineHeight = v;
                     else
                       _refLineHeight = v;
                   })),
@@ -2183,6 +2332,8 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                       _verseOpacity = v;
                     else if (isDual)
                       _secOpacity = v;
+                    else if (isDualRef)
+                      _secRefOpacity = v;
                     else
                       _refOpacity = v;
                   })),
@@ -2300,8 +2451,10 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
             onColorChanged: (c) => setState(() {
               if (_editMode == 'Verse') {
                 _verseEffectColor = c;
-              } else if (_editMode == 'Dual') {
+              } else if (_editMode == 'Dual Verse') {
                 _secEffectColor = c;
+              } else if (_editMode == 'Dual Ref') {
+                _secRefEffectColor = c;
               } else {
                 _refEffectColor = c;
               }
@@ -2390,16 +2543,29 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   }
 
   Widget _buildEffectOption(String effect, IconData icon) {
-    bool isVerse = _editMode == 'Verse';
-    String current = isVerse ? _verseEffect : _refEffect;
+    String current;
+    if (_editMode == 'Verse') {
+      current = _verseEffect;
+    } else if (_editMode == 'Dual') {
+      current = _secEffect;
+    } else if (_editMode == 'Dual Ref') {
+      current = _secRefEffect;
+    } else {
+      current = _refEffect;
+    }
     bool isSelected = current == effect;
 
     return GestureDetector(
       onTap: () => setState(() {
-        if (isVerse)
+        if (_editMode == 'Verse') {
           _verseEffect = effect;
-        else
+        } else if (_editMode == 'Dual Verse') {
+          _secEffect = effect;
+        } else if (_editMode == 'Dual Ref') {
+          _secRefEffect = effect;
+        } else {
           _refEffect = effect;
+        }
       }),
       child: Container(
         margin: const EdgeInsets.only(right: 8),
@@ -2539,10 +2705,14 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
       currentColors = List.from(_verseGradientColors);
       currentBegin = _verseGradientBegin;
       currentEnd = _verseGradientEnd;
-    } else if (_editMode == 'Dual') {
+    } else if (_editMode == 'Dual Verse') {
       currentColors = List.from(_secGradientColors);
       currentBegin = _secGradientBegin;
       currentEnd = _secGradientEnd;
+    } else if (_editMode == 'Dual Ref') {
+      currentColors = List.from(_secRefGradientColors);
+      currentBegin = _secRefGradientBegin;
+      currentEnd = _secRefGradientEnd;
     } else {
       currentColors = List.from(_refGradientColors);
       currentBegin = _refGradientBegin;
@@ -2706,10 +2876,14 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
         _verseGradientColors = List.from(colors);
         _verseGradientBegin = begin;
         _verseGradientEnd = end;
-      } else if (_editMode == 'Dual') {
+      } else if (_editMode == 'Dual Verse') {
         _secGradientColors = List.from(colors);
         _secGradientBegin = begin;
         _secGradientEnd = end;
+      } else if (_editMode == 'Dual Ref') {
+        _secRefGradientColors = List.from(colors);
+        _secRefGradientBegin = begin;
+        _secRefGradientEnd = end;
       } else {
         _refGradientColors = List.from(colors);
         _refGradientBegin = begin;

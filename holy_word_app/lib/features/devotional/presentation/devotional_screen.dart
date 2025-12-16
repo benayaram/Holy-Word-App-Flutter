@@ -180,6 +180,12 @@ class _DevotionalScreenState extends ConsumerState<DevotionalScreen> {
         builder: (context) => ShareVerseScreen(
           verseText: text,
           verseReference: reference,
+          parallelText: isTelugu
+              ? (_dailyVerseData?['english'] ?? '')
+              : (_dailyVerseData?['telugu'] ?? ''),
+          parallelReference: isTelugu
+              ? (_dailyVerseData?['englishReference'] ?? '')
+              : (_dailyVerseData?['teluguReference'] ?? ''),
         ),
       ),
     );
