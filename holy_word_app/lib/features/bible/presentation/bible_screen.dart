@@ -537,6 +537,9 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                 verse: _selectedVerse,
                 bookName: _getBookName(_selectedBookId, isTelugu),
                 onSelectionChanged: (bookId, chapter, verse) {
+                  final previousBookId = _selectedBookId;
+                  final previousChapter = _selectedChapter;
+
                   setState(() {
                     _selectedBookId = bookId;
                     _selectedChapter = chapter;
@@ -544,9 +547,9 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                     _targetScrollVerse = verse; // prepare to scroll
                   });
                   // Reload if book/chapter changed
-                  if (bookId != _selectedBookId) {
+                  if (bookId != previousBookId) {
                     _loadChapters();
-                  } else if (chapter != _selectedChapter) {
+                  } else if (chapter != previousChapter) {
                     _loadVerses();
                   } else {
                     _scrollToVerse(verse); // Just scroll
