@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:holy_word_app/features/bible/services/bible_service.dart';
+import 'package:holy_word_app/features/bible/domain/models/verse_layout.dart';
 
 class ShareVerseScreen extends ConsumerStatefulWidget {
   final String verseText;
@@ -1692,6 +1693,8 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                   "Dual Verse", Icons.translate),
                               _buildSelectorButton(
                                   "Dual Ref", Icons.bookmark_add_outlined),
+                              _buildSelectorButton(
+                                  "Layouts", Icons.auto_awesome),
                               _buildSelectorButton("BG", Icons.image),
                             ],
                           ),
@@ -1753,6 +1756,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
 
   Widget _buildActiveControls() {
     if (_editMode == 'BG') return _buildBackgroundControls();
+    if (_editMode == 'Layouts') return _buildLayoutControls();
     return _buildTextControls();
   }
 
@@ -2919,5 +2923,117 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Error sharing image: $e')));
     }
+  }
+
+  Widget _buildLayoutControls() {
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 8.0),
+          child: Text(
+            "Select a preset styling",
+            style: TextStyle(color: Colors.white70, fontSize: 12),
+          ),
+        ),
+        Expanded(
+          child: GridView.builder(
+            itemCount: LayoutPresets.layouts.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 1.5,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemBuilder: (context, index) {
+              final layout = LayoutPresets.layouts[index];
+              return GestureDetector(
+                onTap: () => _applyLayout(layout),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white10,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.style, color: layout.verseColor),
+                      const SizedBox(height: 4),
+                      Text(
+                        layout.name,
+                        textAlign: TextAlign.center,
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _applyLayout(VerseLayout layout) {
+    setState(() {
+      // 1. Background
+      _backgroundColor = layout.backgroundColor;
+      _backgroundGradient = layout.backgroundGradient;
+      _useGradient = layout.useGradient;
+      _useImage = layout.useImage;
+
+      // 2. Verse Style
+      _verseFont = layout.verseFont;
+      _verseTextSize = layout.verseTextSize;
+      _verseColor = layout.verseColor;
+      _verseAlign = layout.verseAlign;
+      _isBold = layout.isBold;
+      _isItalic = layout.isItalic;
+      _isUnderlined = layout.isUnderlined;
+      _hasShadow = layout.hasShadow;
+      _verseEffect = layout.verseEffect;
+      _verseEffectVal = layout.verseEffectVal;
+      _verseEffectColor = layout.verseEffectColor;
+      _verseGradientColors = layout.verseGradientColors;
+      _verseGradientBegin = layout.verseGradientBegin;
+      _verseGradientEnd = layout.verseGradientEnd;
+
+      // 3. Reference Style
+      _refFont = layout.refFont;
+      _refTextSize = layout.refTextSize;
+      _refColor = layout.refColor;
+      _refAlign = layout.refAlign;
+      _refBold = layout.refBold;
+      _refItalic = layout.refItalic;
+      _refEffect = layout.refEffect;
+      _refEffectVal = layout.refEffectVal;
+      _refEffectColor = layout.refEffectColor;
+      _refGradientColors = layout.refGradientColors;
+      _refGradientBegin = layout.refGradientBegin;
+      _refGradientEnd = layout.refGradientEnd;
+
+      // 4. Secondary Style (Optional: default to match verse or separate?)
+      // For now, mirroring primary verse style to keep it simple unless specified
+      // or we can just leave it as is.
+      // Let's mirror basic font/color to keep it consistent
+      _secFont = layout.verseFont;
+      _secColor = layout.verseColor;
+      _secRefFont = layout.refFont;
+      _secRefColor = layout.refColor;
+
+      // 5. Watermark
+      _watermarkStyle = layout.watermarkStyle;
+      _textWidthFactor = layout.textWidthFactor;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Applied '${layout.name}' layout"),
+        duration: const Duration(milliseconds: 600),
+      ),
+    );
   }
 }
