@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 
+enum LayoutStrategy {
+  uniform, // Standard single style
+  multiLineColors, // Each line gets a different color from a list
+  alternatingSize, // Alternate big/small lines
+  emphasisCenter, // Middle line is big/colored, others small
+}
+
 class VerseLayout {
   final String name;
+  final LayoutStrategy strategy;
 
   // Background
   final Color backgroundColor;
   final List<Color> backgroundGradient;
   final bool useGradient;
-  final bool
-      useImage; // Logic to clear image if true not handled here, just style
+  final bool useImage;
 
   // Verse Style
   final String verseFont;
@@ -26,6 +33,14 @@ class VerseLayout {
   final Alignment verseGradientBegin;
   final Alignment verseGradientEnd;
 
+  // Multi-Style Properties
+  final List<Color> multiColors;
+  final List<double> multiSizes;
+
+  // New: Stroke / Outline
+  final Color? verseStrokeColor;
+  final double verseStrokeWidth;
+
   // Reference Style
   final String refFont;
   final double refTextSize;
@@ -40,6 +55,10 @@ class VerseLayout {
   final Alignment refGradientBegin;
   final Alignment refGradientEnd;
 
+  // New: Reference Background (Pill)
+  final Color? refBackgroundColor;
+  final double refBorderRadius;
+
   // Watermark
   final int watermarkStyle;
 
@@ -48,6 +67,7 @@ class VerseLayout {
 
   const VerseLayout({
     required this.name,
+    this.strategy = LayoutStrategy.uniform,
     this.backgroundColor = Colors.black,
     this.backgroundGradient = const [Colors.blue, Colors.purple],
     this.useGradient = true,
@@ -66,6 +86,10 @@ class VerseLayout {
     this.verseGradientColors = const [Colors.yellow, Colors.orange],
     this.verseGradientBegin = Alignment.topLeft,
     this.verseGradientEnd = Alignment.bottomRight,
+    this.verseStrokeColor,
+    this.verseStrokeWidth = 0.0,
+    this.multiColors = const [],
+    this.multiSizes = const [],
     this.refFont = 'Inter',
     this.refTextSize = 16.0,
     this.refColor = Colors.white70,
@@ -78,6 +102,8 @@ class VerseLayout {
     this.refGradientColors = const [Colors.orange, Colors.red],
     this.refGradientBegin = Alignment.topLeft,
     this.refGradientEnd = Alignment.bottomRight,
+    this.refBackgroundColor,
+    this.refBorderRadius = 0.0,
     this.watermarkStyle = 0,
     this.textWidthFactor = 0.85,
   });
@@ -98,16 +124,15 @@ class LayoutPresets {
       verseEffect: 'None',
       refFont: 'Inter',
       refTextSize: 16.0,
-      refColor: Colors.grey,
+      refColor: Colors.black, // Dark text
       refAlign: TextAlign.center,
+      refBackgroundColor: Colors.white, // White Pill
+      refBorderRadius: 20.0,
     ),
     VerseLayout(
       name: 'Modern Gradient',
       useGradient: true,
-      backgroundGradient: [
-        Color(0xFF8E2DE2),
-        Color(0xFF4A00E0)
-      ], // Purple to Deep Purple
+      backgroundGradient: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
       verseFont: 'Roboto',
       verseTextSize: 26.0,
       verseColor: Colors.white,
@@ -115,20 +140,17 @@ class LayoutPresets {
       isBold: true,
       hasShadow: true,
       verseEffect: 'Glow',
-      verseEffectVal: 0.2, // Subtle glow
+      verseEffectVal: 0.2,
       verseEffectColor: Colors.black54,
       refFont: 'Roboto',
       refAlign: TextAlign.left,
       refColor: Colors.white70,
-      watermarkStyle: 1, // Custom badge
+      watermarkStyle: 1,
     ),
     VerseLayout(
       name: 'Golden Glory',
       useGradient: true,
-      backgroundGradient: [
-        Color(0xFF232526),
-        Color(0xFF414345)
-      ], // Metallic Dark
+      backgroundGradient: [Color(0xFF232526), Color(0xFF414345)],
       verseFont: 'Merriweather',
       verseTextSize: 28.0,
       verseColor: Colors.white,
@@ -138,46 +160,81 @@ class LayoutPresets {
       verseEffect: 'Gold',
       verseEffectVal: 1.0,
       refFont: 'Merriweather',
-      refColor: Color(0xFFFFD700), // Gold Color
+      refColor: Color(0xFFFFD700),
       refEffect: 'Gold',
       refEffectVal: 1.0,
       watermarkStyle: 2,
     ),
     VerseLayout(
-      name: 'Serene Nature',
+      name: 'Promise Board',
+      strategy: LayoutStrategy.multiLineColors,
       useGradient: true,
-      backgroundGradient: [Color(0xFF11998e), Color(0xFF38ef7d)], // Green
-      verseFont: 'Playfair',
-      verseTextSize: 28.0,
+      backgroundGradient: [Color(0xFF141E30), Color(0xFF243B55)], // Deep Blue
+      verseFont: 'Gidugu', // Decorative Telugu-ish font
+      verseTextSize: 32.0,
+      verseColor: Colors.white,
+      verseAlign: TextAlign.right,
+      isBold: true,
+      hasShadow: true,
+      verseEffect: 'None',
+      verseStrokeColor: Colors.black,
+      verseStrokeWidth: 2.0,
+      multiColors: [
+        Color(0xFFFFD700), // Gold
+        Colors.white,
+        Color(0xFF00BFA5), // Teal
+        Color(0xFFFF4081), // Pink
+      ],
+      refFont: 'Gidugu',
+      refColor: Color(0xFF141E30), // Dark text
+      refAlign: TextAlign.right,
+      refBackgroundColor: Colors.white, // White Pill
+      refBorderRadius: 20.0,
+      watermarkStyle: 3,
+    ),
+    VerseLayout(
+      name: 'Morning Grace',
+      strategy: LayoutStrategy.emphasisCenter, // Middle line big
+      useGradient: true,
+      backgroundGradient: [Color(0xFFff9966), Color(0xFFff5e62)], // Sunrise
+      verseFont: 'Mandali',
+      verseTextSize: 22.0,
       verseColor: Colors.white,
       verseAlign: TextAlign.center,
-      isItalic: true,
-      isBold: false,
-      hasShadow: true,
-      verseEffect: 'Gradient',
-      verseGradientColors: [Colors.white, Color(0xFFE0F2F1)],
-      refFont: 'Playfair',
+      isBold: true,
+      hasShadow: false,
+      verseEffect: 'None',
+      verseStrokeColor: Color(0xFF8B0000), // Dark Red Outline
+      verseStrokeWidth: 1.5,
+      multiColors: [Colors.yellowAccent], // Emphasis color
+      multiSizes: [40.0], // Emphasis size
+      refFont: 'Mandali',
       refColor: Colors.white,
-      refItalic: true,
+      refEffect: 'None',
+      refBackgroundColor:
+          Color(0xFF434343).withOpacity(0.5), // Semi-transparent pill
+      refBorderRadius: 8.0,
       watermarkStyle: 0,
     ),
     VerseLayout(
-      name: 'Bold Statement',
+      name: 'Shadow Hand',
+      strategy: LayoutStrategy.alternatingSize,
       useGradient: true,
-      backgroundGradient: [Color(0xFFff9966), Color(0xFFff5e62)], // Orange/Red
-      verseFont: 'NTR',
-      verseTextSize: 32.0,
+      backgroundGradient: [Colors.black, Color(0xFF434343)],
+      verseFont: 'Ramabhadra',
+      verseTextSize: 24.0,
       verseColor: Colors.white,
       verseAlign: TextAlign.center,
       isBold: true,
       hasShadow: true,
-      verseEffect: '3D',
-      verseEffectVal: 0.8,
-      verseEffectColor: Color(0xFFB71C1C),
-      refFont: 'NTR',
-      refColor: Colors.white,
-      refEffect: 'None',
-      textWidthFactor: 0.95,
+      verseEffect: 'Glow',
+      verseEffectVal: 0.5,
+      verseEffectColor: Colors.blue,
+      multiSizes: [24.0, 36.0], // Small, Big, Small...
+      multiColors: [Colors.white70, Colors.white],
+      refFont: 'Ramabhadra',
+      refColor: Colors.orangeAccent,
+      refAlign: TextAlign.center,
     ),
   ];
 }

@@ -171,6 +171,11 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   double _verseEffectVal = 0.5; // Intensity/Depth
   Color _verseEffectColor = Colors.black; // Shadow/Glow Color
 
+  // Multi-Style State
+  LayoutStrategy _layoutStrategy = LayoutStrategy.uniform;
+  List<Color> _multiColors = [];
+  List<double> _multiSizes = [];
+
   // Reference Styling State
   String _refFont = 'Inter';
   double _refTextSize = 16.0;
@@ -183,6 +188,14 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   String _refEffect = 'None';
   double _refEffectVal = 0.5;
   Color _refEffectColor = Colors.black;
+
+  // New: Stroke / Outline
+  Color? _verseStrokeColor;
+  double _verseStrokeWidth = 0.0;
+
+  // New: Reference Text Pill
+  Color? _refBackgroundColor;
+  double _refBorderRadius = 0.0;
 
   // Font Map (Internal Name -> TextStyle Generator)
   final Map<
@@ -1024,74 +1037,11 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                     decoration: null,
                                     child: _applyTextEffect(
                                       _verseEffect,
+                                      _buildStyledVerseText(widget.verseText),
                                       gradientColors: _verseGradientColors,
                                       begin: _verseGradientBegin,
                                       end: _verseGradientEnd,
                                       goldTint: _verseEffectColor,
-                                      _isVerseDynamic
-                                          ? AutoSizeText(
-                                              widget.verseText,
-                                              textAlign: _verseAlign,
-                                              style: _getFont(
-                                                _verseFont,
-                                                _verseTextSize,
-                                                _verseEffect == 'Gradient' ||
-                                                        _verseEffect == 'Gold'
-                                                    ? Colors.white
-                                                    : _verseColor.withOpacity(
-                                                        _verseOpacity),
-                                                _isBold
-                                                    ? FontWeight.bold
-                                                    : FontWeight.normal,
-                                              ).copyWith(
-                                                height: _verseLineHeight,
-                                                fontStyle: _isItalic
-                                                    ? FontStyle.italic
-                                                    : FontStyle.normal,
-                                                decoration: _isUnderlined
-                                                    ? TextDecoration.underline
-                                                    : TextDecoration.none,
-                                                shadows: _getEffectShadows(
-                                                    _verseEffect,
-                                                    _hasShadow,
-                                                    _verseEffectVal,
-                                                    _verseEffectColor),
-                                              ),
-                                              minFontSize: 14,
-                                              maxLines: 15,
-                                              stepGranularity: 1,
-                                              wrapWords: true,
-                                              overflow: TextOverflow.ellipsis,
-                                            )
-                                          : Text(
-                                              widget.verseText,
-                                              textAlign: _verseAlign,
-                                              style: _getFont(
-                                                _verseFont,
-                                                _verseTextSize,
-                                                _verseEffect == 'Gradient' ||
-                                                        _verseEffect == 'Gold'
-                                                    ? Colors.white
-                                                    : _verseColor.withOpacity(
-                                                        _verseOpacity),
-                                                _isBold
-                                                    ? FontWeight.bold
-                                                    : FontWeight.normal,
-                                              ).copyWith(
-                                                height: _verseLineHeight,
-                                                fontStyle: _isItalic
-                                                    ? FontStyle.italic
-                                                    : FontStyle.normal,
-                                                decoration: _isUnderlined
-                                                    ? TextDecoration.underline
-                                                    : TextDecoration.none,
-                                                shadows: _getEffectShadows(
-                                                    _verseEffect,
-                                                    _hasShadow,
-                                                    _verseEffectVal,
-                                                    _verseEffectColor),
-                                              ),
-                                            ),
                                     ),
                                   ),
                                 ),
@@ -1124,30 +1074,41 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                       begin: _refGradientBegin,
                                       end: _refGradientEnd,
                                       goldTint: _refEffectColor,
-                                      Text(
-                                        widget.verseReference,
-                                        textAlign: _refAlign,
-                                        style: _getFont(
-                                          _refFont,
-                                          _refTextSize,
-                                          _refEffect == 'Gradient' ||
-                                                  _refEffect == 'Gold'
-                                              ? Colors.white
-                                              : _refColor
-                                                  .withOpacity(_refOpacity),
-                                          _refBold
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                        ).copyWith(
-                                          height: _refLineHeight,
-                                          fontStyle: _refItalic
-                                              ? FontStyle.italic
-                                              : FontStyle.normal,
-                                          shadows: _getEffectShadows(
-                                              _refEffect,
-                                              _hasShadow,
-                                              _refEffectVal,
-                                              _refEffectColor),
+                                      Container(
+                                        padding: _refBackgroundColor != null
+                                            ? const EdgeInsets.symmetric(
+                                                horizontal: 16, vertical: 8)
+                                            : EdgeInsets.zero,
+                                        decoration: BoxDecoration(
+                                          color: _refBackgroundColor,
+                                          borderRadius: BorderRadius.circular(
+                                              _refBorderRadius),
+                                        ),
+                                        child: Text(
+                                          widget.verseReference,
+                                          textAlign: _refAlign,
+                                          style: _getFont(
+                                            _refFont,
+                                            _refTextSize,
+                                            _refEffect == 'Gradient' ||
+                                                    _refEffect == 'Gold'
+                                                ? Colors.white
+                                                : _refColor
+                                                    .withOpacity(_refOpacity),
+                                            _refBold
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                          ).copyWith(
+                                            height: _refLineHeight,
+                                            fontStyle: _refItalic
+                                                ? FontStyle.italic
+                                                : FontStyle.normal,
+                                            shadows: _getEffectShadows(
+                                                _refEffect,
+                                                _hasShadow,
+                                                _refEffectVal,
+                                                _refEffectColor),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1406,30 +1367,44 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                             begin: _refGradientBegin,
                                             end: _refGradientEnd,
                                             goldTint: _refEffectColor,
-                                            Text(
-                                              widget.verseReference,
-                                              textAlign: _refAlign,
-                                              style: _getFont(
-                                                _refFont,
-                                                _refTextSize,
-                                                _refEffect == 'Gradient' ||
-                                                        _refEffect == 'Gold'
-                                                    ? Colors.white
-                                                    : _refColor.withOpacity(
-                                                        _refOpacity),
-                                                _refBold
-                                                    ? FontWeight.bold
-                                                    : FontWeight.normal,
-                                              ).copyWith(
-                                                height: _refLineHeight,
-                                                fontStyle: _refItalic
-                                                    ? FontStyle.italic
-                                                    : FontStyle.normal,
-                                                shadows: _getEffectShadows(
-                                                    _refEffect,
-                                                    _hasShadow,
-                                                    _refEffectVal,
-                                                    _refEffectColor),
+                                            Container(
+                                              padding: _refBackgroundColor !=
+                                                      null
+                                                  ? const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 8)
+                                                  : EdgeInsets.zero,
+                                              decoration: BoxDecoration(
+                                                color: _refBackgroundColor,
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        _refBorderRadius),
+                                              ),
+                                              child: Text(
+                                                widget.verseReference,
+                                                textAlign: _refAlign,
+                                                style: _getFont(
+                                                  _refFont,
+                                                  _refTextSize,
+                                                  _refEffect == 'Gradient' ||
+                                                          _refEffect == 'Gold'
+                                                      ? Colors.white
+                                                      : _refColor.withOpacity(
+                                                          _refOpacity),
+                                                  _refBold
+                                                      ? FontWeight.bold
+                                                      : FontWeight.normal,
+                                                ).copyWith(
+                                                  height: _refLineHeight,
+                                                  fontStyle: _refItalic
+                                                      ? FontStyle.italic
+                                                      : FontStyle.normal,
+                                                  shadows: _getEffectShadows(
+                                                      _refEffect,
+                                                      _hasShadow,
+                                                      _refEffectVal,
+                                                      _refEffectColor),
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -2977,6 +2952,159 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
     );
   }
 
+  Widget _buildStyledVerseText(String text) {
+    if (_layoutStrategy == LayoutStrategy.uniform) {
+      // Base Style
+      final style = _getFont(
+        _verseFont,
+        _verseTextSize,
+        _verseEffect == 'Gradient' || _verseEffect == 'Gold'
+            ? Colors.white
+            : _verseColor.withOpacity(_verseOpacity),
+        _isBold ? FontWeight.bold : FontWeight.normal,
+      ).copyWith(
+        height: _verseLineHeight,
+        fontStyle: _isItalic ? FontStyle.italic : FontStyle.normal,
+        decoration:
+            _isUnderlined ? TextDecoration.underline : TextDecoration.none,
+        shadows: _getEffectShadows(
+            _verseEffect, _hasShadow, _verseEffectVal, _verseEffectColor),
+      );
+
+      Widget textWidget = _isVerseDynamic
+          ? AutoSizeText(
+              text,
+              textAlign: _verseAlign,
+              style: style,
+              minFontSize: 14,
+              maxLines: 15,
+              stepGranularity: 1,
+              wrapWords: true, // Wrap at words if possible
+              overflow: TextOverflow.ellipsis,
+            )
+          : Text(
+              text,
+              textAlign: _verseAlign,
+              style: style,
+            );
+
+      // Apply Stroke if needed
+      if (_verseStrokeWidth > 0 && _verseStrokeColor != null) {
+        return Stack(
+          children: [
+            // Stroke Layer
+            Text(
+              text,
+              textAlign: _verseAlign,
+              style: style.copyWith(
+                foreground: Paint()
+                  ..style = PaintingStyle.stroke
+                  ..strokeWidth = _verseStrokeWidth
+                  ..color = _verseStrokeColor!,
+                shadows: [], // No shadow on stroke usually
+              ),
+            ),
+            // Fill Layer
+            textWidget,
+          ],
+        );
+      }
+      return textWidget;
+    }
+
+    // Strategies that rely on splitting lines
+    final lines = text.split('\n');
+    List<Widget> textWidgets = [];
+
+    for (int i = 0; i < lines.length; i++) {
+      Color lineColor = _verseColor; // Default
+      double lineSize = _verseTextSize; // Default
+
+      if (_layoutStrategy == LayoutStrategy.multiLineColors) {
+        if (_multiColors.isNotEmpty) {
+          lineColor = _multiColors[i % _multiColors.length];
+        }
+      } else if (_layoutStrategy == LayoutStrategy.alternatingSize) {
+        if (_multiSizes.isNotEmpty) {
+          lineSize = _multiSizes[i % _multiSizes.length];
+        }
+        if (_multiColors.isNotEmpty) {
+          lineColor = _multiColors[i % _multiColors.length];
+        }
+      } else if (_layoutStrategy == LayoutStrategy.emphasisCenter) {
+        // Emphasis on the middle line (approx)
+        bool isCenter = i == (lines.length / 2).floor();
+        if (isCenter) {
+          if (_multiSizes.isNotEmpty) lineSize = _multiSizes[0];
+          if (_multiColors.isNotEmpty) lineColor = _multiColors[0];
+        }
+      }
+
+      final style = _getFont(
+        _verseFont,
+        lineSize,
+        _verseEffect == 'Gradient' || _verseEffect == 'Gold'
+            ? Colors.white
+            : lineColor.withOpacity(_verseOpacity),
+        _isBold ? FontWeight.bold : FontWeight.normal,
+      ).copyWith(
+        height: _verseLineHeight,
+        fontStyle: _isItalic ? FontStyle.italic : FontStyle.normal,
+        decoration:
+            _isUnderlined ? TextDecoration.underline : TextDecoration.none,
+        shadows: _getEffectShadows(
+            _verseEffect, _hasShadow, _verseEffectVal, _verseEffectColor),
+      );
+
+      Widget lineWidget = Text(
+        lines[i],
+        textAlign: _verseAlign,
+        style: style,
+      );
+
+      // Apply Stroke Per Line if needed
+      if (_verseStrokeWidth > 0 && _verseStrokeColor != null) {
+        lineWidget = Stack(
+          children: [
+            Text(
+              lines[i],
+              textAlign: _verseAlign,
+              style: style.copyWith(
+                foreground: Paint()
+                  ..style = PaintingStyle.stroke
+                  ..strokeWidth = _verseStrokeWidth
+                  ..color = _verseStrokeColor!,
+                shadows: [],
+              ),
+            ),
+            lineWidget,
+          ],
+        );
+      }
+
+      textWidgets.add(lineWidget);
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: _getCrossAlign(_verseAlign),
+      children: textWidgets,
+    );
+  }
+
+  CrossAxisAlignment _getCrossAlign(TextAlign align) {
+    switch (align) {
+      case TextAlign.left:
+        return CrossAxisAlignment.start;
+      case TextAlign.right:
+        return CrossAxisAlignment.end;
+      case TextAlign.center:
+      case TextAlign.justify:
+      default:
+        return CrossAxisAlignment.center;
+    }
+  }
+
   void _applyLayout(VerseLayout layout) {
     setState(() {
       // 1. Background
@@ -3001,6 +3129,13 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
       _verseGradientBegin = layout.verseGradientBegin;
       _verseGradientEnd = layout.verseGradientEnd;
 
+      // 2b. Multi-Style & Stroke
+      _layoutStrategy = layout.strategy;
+      _multiColors = List.from(layout.multiColors);
+      _multiSizes = List.from(layout.multiSizes);
+      _verseStrokeColor = layout.verseStrokeColor;
+      _verseStrokeWidth = layout.verseStrokeWidth;
+
       // 3. Reference Style
       _refFont = layout.refFont;
       _refTextSize = layout.refTextSize;
@@ -3014,6 +3149,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
       _refGradientColors = layout.refGradientColors;
       _refGradientBegin = layout.refGradientBegin;
       _refGradientEnd = layout.refGradientEnd;
+      // Ref Pill
+      _refBackgroundColor = layout.refBackgroundColor;
+      _refBorderRadius = layout.refBorderRadius;
 
       // 4. Secondary Style (Optional: default to match verse or separate?)
       // For now, mirroring primary verse style to keep it simple unless specified
