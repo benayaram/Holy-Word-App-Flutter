@@ -5,6 +5,7 @@ enum LayoutStrategy {
   multiLineColors, // Each line gets a different color from a list
   alternatingSize, // Alternate big/small lines
   emphasisCenter, // Middle line is big/colored, others small
+  emphasisEnd, // First part normal, last part emphasized (different font/size/color)
 }
 
 class VerseLayout {
@@ -36,6 +37,12 @@ class VerseLayout {
   // Multi-Style Properties
   final List<Color> multiColors;
   final List<double> multiSizes;
+
+  // Emphasis Style (for strategies like emphasisEnd)
+  final String? emphasisFont;
+  final double? emphasisTextSize;
+  final Color? emphasisColor;
+  final bool? emphasisBold;
 
   // New: Stroke / Outline
   final Color? verseStrokeColor;
@@ -106,135 +113,45 @@ class VerseLayout {
     this.refBorderRadius = 0.0,
     this.watermarkStyle = 0,
     this.textWidthFactor = 0.85,
+    this.emphasisFont,
+    this.emphasisTextSize,
+    this.emphasisColor,
+    this.emphasisBold,
   });
 }
 
 class LayoutPresets {
   static const List<VerseLayout> layouts = [
     VerseLayout(
-      name: 'Classic',
-      backgroundColor: Colors.black,
+      name: 'Layout 1',
+      strategy: LayoutStrategy.emphasisEnd, // Use new strategy
+      backgroundColor: Colors.white,
       useGradient: false,
+
+      // Intro Style (Small, Black, Simple)
       verseFont: 'Inter',
-      verseTextSize: 24.0,
-      verseColor: Colors.white,
-      verseAlign: TextAlign.center,
-      isBold: true,
-      hasShadow: false,
-      verseEffect: 'None',
-      refFont: 'Inter',
-      refTextSize: 16.0,
-      refColor: Colors.black, // Dark text
-      refAlign: TextAlign.center,
-      refBackgroundColor: Colors.white, // White Pill
-      refBorderRadius: 20.0,
-    ),
-    VerseLayout(
-      name: 'Modern Gradient',
-      useGradient: true,
-      backgroundGradient: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
-      verseFont: 'Roboto',
-      verseTextSize: 26.0,
-      verseColor: Colors.white,
-      verseAlign: TextAlign.left,
-      isBold: true,
-      hasShadow: true,
-      verseEffect: 'Glow',
-      verseEffectVal: 0.2,
-      verseEffectColor: Colors.black54,
-      refFont: 'Roboto',
-      refAlign: TextAlign.left,
-      refColor: Colors.white70,
-      watermarkStyle: 1,
-    ),
-    VerseLayout(
-      name: 'Golden Glory',
-      useGradient: true,
-      backgroundGradient: [Color(0xFF232526), Color(0xFF414345)],
-      verseFont: 'Merriweather',
-      verseTextSize: 28.0,
-      verseColor: Colors.white,
-      verseAlign: TextAlign.center,
-      isBold: true,
-      hasShadow: true,
-      verseEffect: 'Gold',
-      verseEffectVal: 1.0,
-      refFont: 'Merriweather',
-      refColor: Color(0xFFFFD700),
-      refEffect: 'Gold',
-      refEffectVal: 1.0,
-      watermarkStyle: 2,
-    ),
-    VerseLayout(
-      name: 'Promise Board',
-      strategy: LayoutStrategy.multiLineColors,
-      useGradient: true,
-      backgroundGradient: [Color(0xFF141E30), Color(0xFF243B55)], // Deep Blue
-      verseFont: 'Gidugu', // Decorative Telugu-ish font
-      verseTextSize: 32.0,
-      verseColor: Colors.white,
+      verseTextSize: 18.0,
+      verseColor: Colors.black,
       verseAlign: TextAlign.right,
-      isBold: true,
-      hasShadow: true,
-      verseEffect: 'None',
-      verseStrokeColor: Colors.black,
-      verseStrokeWidth: 2.0,
-      multiColors: [
-        Color(0xFFFFD700), // Gold
-        Colors.white,
-        Color(0xFF00BFA5), // Teal
-        Color(0xFFFF4081), // Pink
-      ],
-      refFont: 'Gidugu',
-      refColor: Color(0xFF141E30), // Dark text
-      refAlign: TextAlign.right,
-      refBackgroundColor: Colors.white, // White Pill
-      refBorderRadius: 20.0,
-      watermarkStyle: 3,
-    ),
-    VerseLayout(
-      name: 'Morning Grace',
-      strategy: LayoutStrategy.emphasisCenter, // Middle line big
-      useGradient: true,
-      backgroundGradient: [Color(0xFFff9966), Color(0xFFff5e62)], // Sunrise
-      verseFont: 'Mandali',
-      verseTextSize: 22.0,
-      verseColor: Colors.white,
-      verseAlign: TextAlign.center,
-      isBold: true,
+      isBold: false, // Normal weight for intro
+
+      // Emphasis Style (Big, Gold, Serif)
+      emphasisFont: 'Merriweather',
+      emphasisTextSize: 42.0, // Huge size
+      emphasisColor: Color(0xFF997A49), // Gold
+      emphasisBold: true,
+
       hasShadow: false,
       verseEffect: 'None',
-      verseStrokeColor: Color(0xFF8B0000), // Dark Red Outline
-      verseStrokeWidth: 1.5,
-      multiColors: [Colors.yellowAccent], // Emphasis color
-      multiSizes: [40.0], // Emphasis size
-      refFont: 'Mandali',
+
+      // Reference Style (Pill)
+      refFont: 'Inter',
+      refTextSize: 14.0,
       refColor: Colors.white,
-      refEffect: 'None',
-      refBackgroundColor:
-          Color(0xFF434343).withOpacity(0.5), // Semi-transparent pill
-      refBorderRadius: 8.0,
+      refAlign: TextAlign.right,
+      refBackgroundColor: Color(0xFF997A49),
+      refBorderRadius: 20.0,
       watermarkStyle: 0,
-    ),
-    VerseLayout(
-      name: 'Shadow Hand',
-      strategy: LayoutStrategy.alternatingSize,
-      useGradient: true,
-      backgroundGradient: [Colors.black, Color(0xFF434343)],
-      verseFont: 'Ramabhadra',
-      verseTextSize: 24.0,
-      verseColor: Colors.white,
-      verseAlign: TextAlign.center,
-      isBold: true,
-      hasShadow: true,
-      verseEffect: 'Glow',
-      verseEffectVal: 0.5,
-      verseEffectColor: Colors.blue,
-      multiSizes: [24.0, 36.0], // Small, Big, Small...
-      multiColors: [Colors.white70, Colors.white],
-      refFont: 'Ramabhadra',
-      refColor: Colors.orangeAccent,
-      refAlign: TextAlign.center,
     ),
   ];
 }
