@@ -27,14 +27,15 @@ Future<void> main() async {
   }
 
   // Initialize Supabase
-  try {
-    await Supabase.initialize(
-      url: AppConstants.supabaseUrl,
-      anonKey: AppConstants.supabaseAnonKey,
-    );
-  } catch (e) {
+  // Initialize Supabase in background to avoid blocking startup
+  Supabase.initialize(
+    url: AppConstants.supabaseUrl,
+    anonKey: AppConstants.supabaseAnonKey,
+  ).then((_) {
+    debugPrint('Supabase initialized successfully');
+  }).catchError((e) {
     debugPrint('Supabase initialization failed: $e');
-  }
+  });
 
   runApp(const ProviderScope(child: HolyWordApp()));
 }

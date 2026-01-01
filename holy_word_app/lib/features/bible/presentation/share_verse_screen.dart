@@ -230,7 +230,14 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   // Multi-Style State
   LayoutStrategy _layoutStrategy = LayoutStrategy.uniform;
   List<Color> _multiColors = [];
+
   List<double> _multiSizes = [];
+
+  // Emphasis State (for LayoutStrategy.emphasisEnd)
+  String? _emphasisFont;
+  double? _emphasisTextSize;
+  Color? _emphasisColor;
+  bool _emphasisBold = true;
 
   // Reference Styling State
   String _refFont = 'Inter';
@@ -3297,9 +3304,24 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
     final lines = text.split('\n');
     List<Widget> textWidgets = [];
 
+    // Calculate split for EmphasisEnd
+    int emphasisStartIndex = lines.length;
+    if (_layoutStrategy == LayoutStrategy.emphasisEnd) {
+      if (lines.length == 1) {
+        emphasisStartIndex = 1;
+      } else if (lines.length == 2) {
+        emphasisStartIndex = 1; // 1 Intro, 1 Emphasis
+      } else {
+        emphasisStartIndex = lines.length - 2;
+        if (emphasisStartIndex < 1) emphasisStartIndex = 1;
+      }
+    }
+
     for (int i = 0; i < lines.length; i++) {
       Color lineColor = _verseColor; // Default
       double lineSize = _verseTextSize; // Default
+      String lineFont = _verseFont;
+      bool lineBold = _isBold;
 
       if (_layoutStrategy == LayoutStrategy.multiLineColors) {
         if (_multiColors.isNotEmpty) {
@@ -3319,15 +3341,23 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
           if (_multiSizes.isNotEmpty) lineSize = _multiSizes[0];
           if (_multiColors.isNotEmpty) lineColor = _multiColors[0];
         }
+      } else if (_layoutStrategy == LayoutStrategy.emphasisEnd) {
+        bool isEmphasis = i >= emphasisStartIndex;
+        if (isEmphasis) {
+          if (_emphasisFont != null) lineFont = _emphasisFont!;
+          if (_emphasisTextSize != null) lineSize = _emphasisTextSize!;
+          if (_emphasisColor != null) lineColor = _emphasisColor!;
+          lineBold = _emphasisBold;
+        }
       }
 
       final style = _getFont(
-        _verseFont,
+        lineFont,
         lineSize,
         _verseEffect == 'Gradient' || _verseEffect == 'Gold'
             ? Colors.white
             : lineColor.withOpacity(_verseOpacity),
-        _isBold ? FontWeight.bold : FontWeight.normal,
+        lineBold ? FontWeight.bold : FontWeight.normal,
       ).copyWith(
         height: _verseLineHeight,
         fontStyle: _isItalic ? FontStyle.italic : FontStyle.normal,
@@ -3430,9 +3460,6 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
       _refGradientColors = layout.refGradientColors;
       _refGradientBegin = layout.refGradientBegin;
       _refGradientEnd = layout.refGradientEnd;
-      // Ref Pill
-      _refBackgroundColor = layout.refBackgroundColor;
-      _refBorderRadius = layout.refBorderRadius;
 
       // 4. Secondary Style (Optional: default to match verse or separate?)
       // For now, mirroring primary verse style to keep it simple unless specified
@@ -3446,6 +3473,17 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
       // 5. Watermark
       _watermarkStyle = layout.watermarkStyle;
       _textWidthFactor = layout.textWidthFactor;
+
+      // 6. Emphasis (New)
+      _layoutStrategy = layout.strategy ?? LayoutStrategy.uniform;
+      _emphasisFont = layout.emphasisFont;
+      _emphasisTextSize = layout.emphasisTextSize;
+      _emphasisColor = layout.emphasisColor;
+      _emphasisBold = layout.emphasisBold ?? true;
+
+      // 7. Ref Pill
+      _refBackgroundColor = layout.refBackgroundColor;
+      _refBorderRadius = layout.refBorderRadius;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
