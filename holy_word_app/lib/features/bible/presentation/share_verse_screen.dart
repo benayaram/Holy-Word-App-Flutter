@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -32,7 +32,26 @@ class ShareVerseScreen extends ConsumerStatefulWidget {
     this.verseNumbers,
     this.parallelText,
     this.parallelReference,
+    this.initialGradient,
+    this.initialVerseFont,
+    this.initialReferenceFont,
+    this.initialBackgroundImage,
+    this.initialShowWatermark = true,
+    this.initialEnableTint = false,
+    this.initialAspectRatio = 1.0,
+    this.initialSecondaryFont,
+    this.initialSecondaryReferenceFont,
   });
+
+  final List<Color>? initialGradient;
+  final String? initialVerseFont;
+  final String? initialReferenceFont;
+  final File? initialBackgroundImage;
+  final bool initialShowWatermark;
+  final bool initialEnableTint;
+  final double initialAspectRatio;
+  final String? initialSecondaryFont;
+  final String? initialSecondaryReferenceFont;
 
   @override
   ConsumerState<ShareVerseScreen> createState() => _ShareVerseScreenState();
@@ -44,7 +63,41 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   @override
   void initState() {
     super.initState();
-    // Pre-populate if enabled? No, wait for user.
+    _aspectRatio = widget.initialAspectRatio; // Initialize aspect ratio
+    _showWatermark = widget.initialShowWatermark;
+    if (widget.initialGradient != null) {
+      _backgroundGradient = widget.initialGradient!;
+      _useGradient = true;
+      _useImage = false;
+      _verseGradientColors =
+          widget.initialGradient!; // Sync verse gradient too for now
+    }
+    if (widget.initialVerseFont != null) {
+      _verseFont = widget.initialVerseFont!;
+    }
+    if (widget.initialReferenceFont != null) {
+      _refFont = widget.initialReferenceFont!;
+    }
+    if (widget.initialBackgroundImage != null) {
+      _backgroundImage = widget.initialBackgroundImage!;
+      _useImage = true;
+      _useGradient = false;
+      // If we have an image, respect the tint setting
+      _enableTint = widget.initialEnableTint;
+    }
+
+    // Initialize Dual Text
+    if (widget.parallelText != null && widget.parallelText!.isNotEmpty) {
+      _secondaryText = widget.parallelText!;
+      _secondaryReference = widget.parallelReference ?? '';
+      _showDual = true;
+    }
+    if (widget.initialSecondaryFont != null) {
+      _secFont = widget.initialSecondaryFont!;
+    }
+    if (widget.initialSecondaryReferenceFont != null) {
+      _secRefFont = widget.initialSecondaryReferenceFont!;
+    }
   }
 
   Future<void> _fetchParallelVerses() async {
@@ -82,7 +135,10 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   // Global Settings
   double _aspectRatio = 1.0;
   bool _isExporting = false; // To hide UI elements during capture
+  bool _isSaving = false; // For return-to-batch loading state
   bool _showWatermark = true;
+  Color _watermarkTint = Colors.white; // New: Watermark Tint
+  double _watermarkOpacity = 0.5;
 
   // Background State
   File? _backgroundImage;
@@ -884,31 +940,32 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
     'Lato': 'Lato',
     'Merriweather': 'Merriweather',
     'Playfair': 'Playfair',
-    'Annamayya': 'అన్నమయ్య',
-    'Chathura': 'చతుర',
-    'Dhurjati': 'ధూర్జటి',
-    'Gidugu': 'గిడుగు',
-    'Gurajada': 'గురజాడ',
-    'Jims': 'జిమ్స్',
-    'Kanakadurga': 'కనకదుర్గ',
-    'LakkiReddy': 'లక్కిరెడ్డి',
-    'Mallanna': 'మల్లన్న',
-    'Mandali': 'మండలి',
-    'Nandakam': 'నందకం',
-    'NATS': 'నాట్స్',
-    'NTR': 'ఎన్టీఆర్',
-    'Peddana': 'పెద్దన',
-    'Potti Sreeramulu': 'పొట్టి శ్రీరాములు',
-    'Purushothamaa': 'పురుషోత్తమ',
-    'Ramabhadra': 'రామభద్ర',
-    'Ramaneeyawin': 'రామణీయం',
-    'RaviPrakash': 'రవిప్రకాష్',
-    'Seelaveerraju': 'శీలవీర్రాజు',
-    'SPBalasubrahmanyam': 'ఎస్.పి.బాలసుబ్రహ్మణ్యం',
-    'Sree Krushnadevaraya': 'శ్రీ కృష్ణదేవరాయ',
-    'Suranna': 'సూరన',
-    'Suravaram': 'సురవaram',
-    'Syamala Ramana': 'శ్యామల రమణ',
+    'Annamayya': 'à°…à°¨à±à°¨à°®à°¯à±à°¯',
+    'Chathura': 'à°šà°¤à±à°°',
+    'Dhurjati': 'à°§à±‚à°°à±à°œà°Ÿà°¿',
+    'Gidugu': 'à°—à°¿à°¡à±à°—à±',
+    'Gurajada': 'à°—à±à°°à°œà°¾à°¡',
+    'Jims': 'à°œà°¿à°®à±à°¸à±',
+    'Kanakadurga': 'à°•à°¨à°•à°¦à±à°°à±à°—',
+    'LakkiReddy': 'à°²à°•à±à°•à°¿à°°à±†à°¡à±à°¡à°¿',
+    'Mallanna': 'à°®à°²à±à°²à°¨à±à°¨',
+    'Mandali': 'à°®à°‚à°¡à°²à°¿',
+    'Nandakam': 'à°¨à°‚à°¦à°•à°‚',
+    'NATS': 'à°¨à°¾à°Ÿà±à°¸à±',
+    'NTR': 'à°Žà°¨à±à°Ÿà±€à°†à°°à±',
+    'Peddana': 'à°ªà±†à°¦à±à°¦à°¨',
+    'Potti Sreeramulu': 'à°ªà±Šà°Ÿà±à°Ÿà°¿ à°¶à±à°°à±€à°°à°¾à°®à±à°²à±',
+    'Purushothamaa': 'à°ªà±à°°à±à°·à±‹à°¤à±à°¤à°®',
+    'Ramabhadra': 'à°°à°¾à°®à°­à°¦à±à°°',
+    'Ramaneeyawin': 'à°°à°¾à°®à°£à±€à°¯à°‚',
+    'RaviPrakash': 'à°°à°µà°¿à°ªà±à°°à°•à°¾à°·à±',
+    'Seelaveerraju': 'à°¶à±€à°²à°µà±€à°°à±à°°à°¾à°œà±',
+    'SPBalasubrahmanyam':
+        'à°Žà°¸à±.à°ªà°¿.à°¬à°¾à°²à°¸à±à°¬à±à°°à°¹à±à°®à°£à±à°¯à°‚',
+    'Sree Krushnadevaraya': 'à°¶à±à°°à±€ à°•à±ƒà°·à±à°£à°¦à±‡à°µà°°à°¾à°¯',
+    'Suranna': 'à°¸à±‚à°°à°¨',
+    'Suravaram': 'à°¸à±à°°à°µaram',
+    'Syamala Ramana': 'à°¶à±à°¯à°¾à°®à°² à°°à°®à°£',
   };
 
   // Dragging State (Alignment based for responsiveness)
@@ -955,11 +1012,38 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
             tooltip: _isPreviewMode ? "Close Preview" : "Preview",
           ),
           if (!_isPreviewMode)
-            IconButton(
-              icon: const Icon(Icons.share),
-              onPressed: _shareImage,
-              tooltip: "Share",
-            )
+            if (_isSaving)
+              const Padding(
+                padding: EdgeInsets.only(right: 16),
+                child: Center(
+                    child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))),
+              )
+            else
+              IconButton(
+                icon: const Icon(Icons.check),
+                onPressed: () async {
+                  setState(() => _isExporting = true);
+                  // wait for UI to update
+                  await Future.delayed(const Duration(milliseconds: 100));
+                  await _saveAndReturn();
+                  if (mounted) {
+                    setState(() => _isExporting = false);
+                  }
+                },
+                tooltip: 'Save & Return',
+              ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () {
+              if (_isSaving) return;
+              _shareImage();
+            },
+            tooltip: "Share",
+          )
         ],
       ),
       body: _isPreviewMode
@@ -1140,9 +1224,10 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                       children: [
                                         Image.asset(
                                           'assets/images/logo.png',
-                                          width: 16,
-                                          height: 16,
-                                          fit: BoxFit.contain,
+                                          width: 40,
+                                          color: _watermarkTint
+                                              .withOpacity(_watermarkOpacity),
+                                          colorBlendMode: BlendMode.srcIn,
                                         ),
                                         const SizedBox(width: 6),
                                         const Text(
@@ -1245,177 +1330,27 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                                   borderRadius:
                                                       BorderRadius.circular(4))
                                               : null,
-                                          child: _applyTextEffect(
-                                            _verseEffect,
-                                            gradientColors:
-                                                _verseGradientColors,
-                                            begin: _verseGradientBegin,
-                                            end: _verseGradientEnd,
-                                            goldTint: _verseEffectColor,
-                                            _isVerseDynamic
-                                                ? AutoSizeText(
-                                                    widget.verseText,
-                                                    textAlign: _verseAlign,
-                                                    style: _getFont(
-                                                      _verseFont,
-                                                      _verseTextSize,
-                                                      _verseEffect ==
-                                                                  'Gradient' ||
-                                                              _verseEffect ==
-                                                                  'Gold'
-                                                          ? Colors.white
-                                                          : _verseColor.withOpacity(
-                                                              _verseOpacity), // Force white for gradient
-                                                      _isBold
-                                                          ? FontWeight.bold
-                                                          : FontWeight.normal,
-                                                    ).copyWith(
-                                                      height: _verseLineHeight,
-                                                      fontStyle: _isItalic
-                                                          ? FontStyle.italic
-                                                          : FontStyle.normal,
-                                                      decoration: _isUnderlined
-                                                          ? TextDecoration
-                                                              .underline
-                                                          : TextDecoration.none,
-                                                      shadows: _getEffectShadows(
-                                                          _verseEffect,
-                                                          _hasShadow,
-                                                          _verseEffectVal,
-                                                          _verseEffectColor),
-                                                    ),
-                                                    minFontSize: 14,
-                                                    maxLines:
-                                                        15, // Allow plenty of lines
-                                                    stepGranularity: 1,
-                                                    wrapWords: true,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  )
-                                                : Text(
-                                                    widget.verseText,
-                                                    textAlign: _verseAlign,
-                                                    style: _getFont(
-                                                      _verseFont,
-                                                      _verseTextSize,
-                                                      _verseEffect ==
-                                                                  'Gradient' ||
-                                                              _verseEffect ==
-                                                                  'Gold'
-                                                          ? Colors.white
-                                                          : _verseColor
-                                                              .withOpacity(
-                                                                  _verseOpacity),
-                                                      _isBold
-                                                          ? FontWeight.bold
-                                                          : FontWeight.normal,
-                                                    ).copyWith(
-                                                      height: _verseLineHeight,
-                                                      fontStyle: _isItalic
-                                                          ? FontStyle.italic
-                                                          : FontStyle.normal,
-                                                      decoration: _isUnderlined
-                                                          ? TextDecoration
-                                                              .underline
-                                                          : TextDecoration.none,
-                                                      shadows: _getEffectShadows(
-                                                          _verseEffect,
-                                                          _hasShadow,
-                                                          _verseEffectVal,
-                                                          _verseEffectColor),
-                                                    ),
-                                                  ),
-                                          ),
+                                          child: _showDual
+                                              ? _buildStyledVerseText(
+                                                  widget.verseText)
+                                              : _applyTextEffect(
+                                                  _verseEffect,
+                                                  _buildStyledVerseText(
+                                                      widget.verseText),
+                                                  gradientColors:
+                                                      _verseGradientColors,
+                                                  begin: _verseGradientBegin,
+                                                  end: _verseGradientEnd,
+                                                  goldTint: _verseEffectColor,
+                                                ),
                                         ),
                                       ),
                                     ),
 
                                     // Draggable Reference
-                                    Align(
-                                      alignment: _refAlignment,
-                                      child: GestureDetector(
-                                        onPanUpdate: (details) {
-                                          setState(() {
-                                            final dx = details.delta.dx /
-                                                (constraints.maxWidth / 2);
-                                            final dy = details.delta.dy /
-                                                (constraints.maxHeight / 2);
-                                            _refAlignment += Alignment(dx, dy);
-                                          });
-                                        },
-                                        onTap: () => setState(
-                                            () => _editMode = 'Reference'),
-                                        child: Container(
-                                          // Reference shouldn't be too wide either
-                                          constraints: BoxConstraints(
-                                              maxWidth:
-                                                  constraints.maxWidth * 0.8),
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: (_editMode ==
-                                                      'Reference' &&
-                                                  !_isExporting)
-                                              ? BoxDecoration(
-                                                  border: Border.all(
-                                                      color: Colors.orange,
-                                                      width: 1.5),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4))
-                                              : null,
-                                          child: _applyTextEffect(
-                                            _refEffect,
-                                            gradientColors: _refGradientColors,
-                                            begin: _refGradientBegin,
-                                            end: _refGradientEnd,
-                                            goldTint: _refEffectColor,
-                                            Container(
-                                              padding: _refBackgroundColor !=
-                                                      null
-                                                  ? const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 8)
-                                                  : EdgeInsets.zero,
-                                              decoration: BoxDecoration(
-                                                color: _refBackgroundColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        _refBorderRadius),
-                                              ),
-                                              child: Text(
-                                                widget.verseReference,
-                                                textAlign: _refAlign,
-                                                style: _getFont(
-                                                  _refFont,
-                                                  _refTextSize,
-                                                  _refEffect == 'Gradient' ||
-                                                          _refEffect == 'Gold'
-                                                      ? Colors.white
-                                                      : _refColor.withOpacity(
-                                                          _refOpacity),
-                                                  _refBold
-                                                      ? FontWeight.bold
-                                                      : FontWeight.normal,
-                                                ).copyWith(
-                                                  height: _refLineHeight,
-                                                  fontStyle: _refItalic
-                                                      ? FontStyle.italic
-                                                      : FontStyle.normal,
-                                                  shadows: _getEffectShadows(
-                                                      _refEffect,
-                                                      _hasShadow,
-                                                      _refEffectVal,
-                                                      _refEffectColor),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-
-                                    // Draggable Secondary Text (Dual Language)
-                                    if (_showDual && _secondaryText.isNotEmpty)
+                                    if (!_showDual)
                                       Align(
-                                        alignment: _secAlignment,
+                                        alignment: _refAlignment,
                                         child: GestureDetector(
                                           onPanUpdate: (details) {
                                             setState(() {
@@ -1423,99 +1358,20 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                                   (constraints.maxWidth / 2);
                                               final dy = details.delta.dy /
                                                   (constraints.maxHeight / 2);
-                                              _secAlignment +=
+                                              _refAlignment +=
                                                   Alignment(dx, dy);
                                             });
                                           },
                                           onTap: () => setState(
-                                              () => _editMode = 'Dual Verse'),
+                                              () => _editMode = 'Reference'),
                                           child: Container(
-                                            width: constraints.maxWidth *
-                                                _textWidthFactor,
-                                            padding: const EdgeInsets.all(12),
-                                            // Hide border in preview
-                                            decoration: (_editMode ==
-                                                        'Dual Verse' &&
-                                                    !_isExporting)
-                                                ? BoxDecoration(
-                                                    border: Border.all(
-                                                        color: Colors.orange,
-                                                        width: 1.5),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            4))
-                                                : null,
-                                            child: _applyTextEffect(
-                                              _secEffect,
-                                              gradientColors:
-                                                  _secGradientColors,
-                                              begin: _secGradientBegin,
-                                              end: _secGradientEnd,
-                                              goldTint: _secEffectColor,
-                                              AutoSizeText(
-                                                _secondaryText,
-                                                textAlign: _secTextAlign,
-                                                style: _getFont(
-                                                  _secFont,
-                                                  _secTextSize,
-                                                  _secEffect == 'Gradient' ||
-                                                          _secEffect == 'Gold'
-                                                      ? Colors.white
-                                                      : _secColor.withOpacity(
-                                                          _secOpacity),
-                                                  _secBold
-                                                      ? FontWeight.bold
-                                                      : FontWeight.normal,
-                                                ).copyWith(
-                                                  height: _secLineHeight,
-                                                  fontStyle: _secItalic
-                                                      ? FontStyle.italic
-                                                      : FontStyle.normal,
-                                                  decoration: _secUnderlined
-                                                      ? TextDecoration.underline
-                                                      : TextDecoration.none,
-                                                  shadows: _getEffectShadows(
-                                                      _secEffect,
-                                                      _hasShadow,
-                                                      _secEffectVal,
-                                                      _secEffectColor),
-                                                ),
-                                                minFontSize: 12,
-                                                maxLines: 15,
-                                                stepGranularity: 1,
-                                                wrapWords: true,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-
-                                    // Secondary Reference
-                                    if (_showDual &&
-                                        _secondaryReference.isNotEmpty)
-                                      Align(
-                                        alignment: _secRefAlignment,
-                                        child: GestureDetector(
-                                          onPanUpdate: (details) {
-                                            setState(() {
-                                              final dx = details.delta.dx /
-                                                  (constraints.maxWidth / 2);
-                                              final dy = details.delta.dy /
-                                                  (constraints.maxHeight / 2);
-                                              _secRefAlignment +=
-                                                  Alignment(dx, dy);
-                                            });
-                                          },
-                                          onTap: () => setState(
-                                              () => _editMode = 'Dual Ref'),
-                                          child: Container(
+                                            // Reference shouldn't be too wide either
                                             constraints: BoxConstraints(
                                                 maxWidth:
                                                     constraints.maxWidth * 0.8),
                                             padding: const EdgeInsets.all(8),
                                             decoration: (_editMode ==
-                                                        'Dual Ref' &&
+                                                        'Reference' &&
                                                     !_isExporting)
                                                 ? BoxDecoration(
                                                     border: Border.all(
@@ -1526,44 +1382,165 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                                             4))
                                                 : null,
                                             child: _applyTextEffect(
-                                              _secRefEffect,
+                                              _refEffect,
                                               gradientColors:
-                                                  _secRefGradientColors,
-                                              begin: _secRefGradientBegin,
-                                              end: _secRefGradientEnd,
-                                              goldTint: _secRefEffectColor,
-                                              Text(
-                                                _secondaryReference,
-                                                textAlign: _secRefAlign,
-                                                style: _getFont(
-                                                  _secRefFont,
-                                                  _secRefSize,
-                                                  _secRefEffect == 'Gradient' ||
-                                                          _secRefEffect ==
-                                                              'Gold'
-                                                      ? Colors.white
-                                                      : _secRefColor
-                                                          .withOpacity(
-                                                              _secRefOpacity),
-                                                  _secRefBold
-                                                      ? FontWeight.bold
-                                                      : FontWeight.normal,
-                                                ).copyWith(
-                                                  height: _secRefLineHeight,
-                                                  fontStyle: _secRefItalic
-                                                      ? FontStyle.italic
-                                                      : FontStyle.normal,
-                                                  shadows: _getEffectShadows(
-                                                      _secRefEffect,
-                                                      _hasShadow,
-                                                      _secRefEffectVal,
-                                                      _secRefEffectColor),
+                                                  _refGradientColors,
+                                              begin: _refGradientBegin,
+                                              end: _refGradientEnd,
+                                              goldTint: _refEffectColor,
+                                              Container(
+                                                padding:
+                                                    _refBackgroundColor != null
+                                                        ? const EdgeInsets
+                                                            .symmetric(
+                                                            horizontal: 16,
+                                                            vertical: 8)
+                                                        : EdgeInsets.zero,
+                                                decoration: BoxDecoration(
+                                                  color: _refBackgroundColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          _refBorderRadius),
+                                                ),
+                                                child: AutoSizeText(
+                                                  widget.verseReference,
+                                                  textAlign: _refAlign,
+                                                  style: _getFont(
+                                                    _refFont,
+                                                    _refTextSize,
+                                                    _refEffect == 'Gradient' ||
+                                                            _refEffect == 'Gold'
+                                                        ? Colors.white
+                                                        : _refColor.withOpacity(
+                                                            _refOpacity),
+                                                    _refBold
+                                                        ? FontWeight.bold
+                                                        : FontWeight.normal,
+                                                  ).copyWith(
+                                                    height: _refLineHeight,
+                                                    fontStyle: _refItalic
+                                                        ? FontStyle.italic
+                                                        : FontStyle.normal,
+                                                    shadows: _getEffectShadows(
+                                                        _refEffect,
+                                                        _hasShadow,
+                                                        _refEffectVal,
+                                                        _refEffectColor),
+                                                  ),
+                                                  minFontSize: 8,
+                                                  maxLines: 4,
+                                                  wrapWords: true,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                             ),
                                           ),
                                         ),
                                       ),
+
+                                    // Draggable Secondary Text (Dual Language)
+
+                                    if (_showDual &&
+                                        _secondaryReference.isNotEmpty &&
+                                        !_showDual) // Actually, we don't want it here at all if _showDual is true, as it's in the column.
+                                      // Wait, the logic above: if (!_showDual) covers the primary reference.
+                                      // For secondary reference, it was ONLY showing if _showDual was true.
+                                      // But now we want it in the column. So we should NOT show it here if _showDual is true.
+                                      // So effectively, we remove this block or make it unreachable in Dual Mode.
+                                      // But wait, the previous code was: if (_showDual && _secondaryReference.isNotEmpty)
+                                      // So this block WAS for dual mode. I should REMOVE it or condition it out.
+                                      // Since I handled it in the column, I should prevent it here.
+
+                                      // Secondary Reference (Standalone - Legacy/Manual Mode)
+                                      // If we are in Dual Mode, it is now part of the text column.
+                                      // So we just don't render it here.
+                                      if (false) // Explicitly disable this standalone rendering for now, or just remove the block.
+                                        // But wait, user might want "draggable" reference in dual mode?
+                                        // The columns approach makes it non-draggable relative to text.
+                                        // The user said "prevent overlapping... match layout in BatchPostsScreen".
+                                        // BatchPostsScreen is a vertical column. So fixed relative position is desired.
+
+                                        // So, for Secondary Reference which was ONLY for dual mode, we just remove/hide it from the stack.
+                                        if (false &&
+                                            _showDual &&
+                                            _secondaryReference.isNotEmpty)
+                                          Align(
+                                            alignment: _secRefAlignment,
+                                            child: GestureDetector(
+                                              onPanUpdate: (details) {
+                                                setState(() {
+                                                  final dx = details.delta.dx /
+                                                      (constraints.maxWidth /
+                                                          2);
+                                                  final dy = details.delta.dy /
+                                                      (constraints.maxHeight /
+                                                          2);
+                                                  _secRefAlignment +=
+                                                      Alignment(dx, dy);
+                                                });
+                                              },
+                                              onTap: () => setState(
+                                                  () => _editMode = 'Dual Ref'),
+                                              child: Container(
+                                                constraints: BoxConstraints(
+                                                    maxWidth:
+                                                        constraints.maxWidth *
+                                                            0.8),
+                                                padding:
+                                                    const EdgeInsets.all(8),
+                                                decoration: (_editMode ==
+                                                            'Dual Ref' &&
+                                                        !_isExporting)
+                                                    ? BoxDecoration(
+                                                        border: Border.all(
+                                                            color:
+                                                                Colors.orange,
+                                                            width: 1.5),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(4))
+                                                    : null,
+                                                child: _applyTextEffect(
+                                                  _secRefEffect,
+                                                  gradientColors:
+                                                      _secRefGradientColors,
+                                                  begin: _secRefGradientBegin,
+                                                  end: _secRefGradientEnd,
+                                                  goldTint: _secRefEffectColor,
+                                                  Text(
+                                                    _secondaryReference,
+                                                    textAlign: _secRefAlign,
+                                                    style: _getFont(
+                                                      _secRefFont,
+                                                      _secRefSize,
+                                                      _secRefEffect ==
+                                                                  'Gradient' ||
+                                                              _secRefEffect ==
+                                                                  'Gold'
+                                                          ? Colors.white
+                                                          : _secRefColor
+                                                              .withOpacity(
+                                                                  _secRefOpacity),
+                                                      _secRefBold
+                                                          ? FontWeight.bold
+                                                          : FontWeight.normal,
+                                                    ).copyWith(
+                                                      height: _secRefLineHeight,
+                                                      fontStyle: _secRefItalic
+                                                          ? FontStyle.italic
+                                                          : FontStyle.normal,
+                                                      shadows: _getEffectShadows(
+                                                          _secRefEffect,
+                                                          _hasShadow,
+                                                          _secRefEffectVal,
+                                                          _secRefEffectColor),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
 
                                     // Watermark (Styled Badge)
                                     if (_showWatermark)
@@ -1621,6 +1598,11 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                                         ? 40
                                                         : 24,
                                                     fit: BoxFit.contain,
+                                                    color: _watermarkTint
+                                                        .withOpacity(
+                                                            _watermarkOpacity),
+                                                    colorBlendMode:
+                                                        BlendMode.srcIn,
                                                   ),
                                                 if (_watermarkStyle == 0)
                                                   const SizedBox(width: 6),
@@ -2300,6 +2282,66 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                     else
                       _refLineHeight = v;
                   })),
+          // Reference Settings
+          if (_editMode == 'Reference') ...[
+            _buildSlider('Size', _refTextSize, 8, 40, (v) {
+              setState(() => _refTextSize = v);
+            }),
+            _buildSlider('Line Height', _refLineHeight, 0.8, 2.5, (v) {
+              setState(() => _refLineHeight = v);
+            }),
+            _buildSlider('Opacity', _refOpacity, 0, 1, (v) {
+              setState(() => _refOpacity = v);
+            }),
+            // Pill settings (Optional, maybe advanced?)
+            const SizedBox(height: 8),
+            const Text("Background Pill",
+                style: TextStyle(color: Colors.white70)),
+            Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.format_paint,
+                      color: _refBackgroundColor ?? Colors.grey),
+                  onPressed: () {
+                    // Toggle crude white pill for now or picker?
+                    setState(() {
+                      if (_refBackgroundColor == null) {
+                        _refBackgroundColor = Colors.black45;
+                      } else {
+                        _refBackgroundColor = null;
+                      }
+                    });
+                  },
+                ),
+                Expanded(
+                    child: _buildSlider('Radius', _refBorderRadius, 0, 20, (v) {
+                  setState(() => _refBorderRadius = v);
+                })),
+              ],
+            ),
+          ],
+
+          // General / Watermark Settings (When no specific mode or maybe 'General' tab?)
+          // Users asked for "Watermark Tint". Let's add it at the bottom of standard settings if visible.
+          if (_showWatermark) ...[
+            const Divider(color: Colors.white24),
+            const Text("Watermark Style",
+                style: TextStyle(color: Colors.white70)),
+            Row(
+              children: [
+                const Text("Tint:", style: TextStyle(color: Colors.white60)),
+                IconButton(
+                  icon: Icon(Icons.circle, color: _watermarkTint),
+                  onPressed: _showWatermarkColorPicker,
+                ),
+                Expanded(
+                  child: _buildSlider("Opacity", _watermarkOpacity, 0, 1, (v) {
+                    setState(() => _watermarkOpacity = v);
+                  }),
+                )
+              ],
+            )
+          ],
           _buildSliderControl(
               icon: Icons.opacity,
               label: "Opacity",
@@ -2438,6 +2480,52 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                 _refEffectColor = c;
               }
             }),
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            child: const Text('Done'),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlider(String label, double value, double min, double max,
+      ValueChanged<double> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(color: Colors.white70)),
+            Text(value.toStringAsFixed(1),
+                style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+        Slider(
+          value: value,
+          min: min,
+          max: max,
+          activeColor: Colors.orange,
+          inactiveColor: Colors.white24,
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+
+  void _showWatermarkColorPicker() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Watermark Tint'),
+        content: SingleChildScrollView(
+          child: ColorPicker(
+            pickerColor: _watermarkTint,
+            onColorChanged: (c) => setState(() => _watermarkTint = c),
           ),
         ),
         actions: [
@@ -2871,6 +2959,28 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
     });
   }
 
+  Future<void> _saveAndReturn() async {
+    setState(() => _isSaving = true);
+    // Wait for rebuild (hide UI elements if any)
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    try {
+      // Capture High Quality
+      final image = await _screenshotController.capture(pixelRatio: 2.0);
+
+      if (mounted) {
+        setState(() => _isSaving = false);
+        Navigator.pop(context, image); // Return the Uint8List
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error saving: $e')));
+      }
+    }
+  }
+
   Future<void> _shareImage() async {
     // 1. Hide Borders
     setState(() => _isExporting = true);
@@ -2977,7 +3087,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
               textAlign: _verseAlign,
               style: style,
               minFontSize: 14,
-              maxLines: 15,
+              maxLines: (_showDual && _secondaryText.isNotEmpty)
+                  ? (_aspectRatio > 1.2 ? 2 : 5)
+                  : (_aspectRatio > 1.2 ? 6 : 15),
               stepGranularity: 1,
               wrapWords: true, // Wrap at words if possible
               overflow: TextOverflow.ellipsis,
@@ -3001,7 +3113,6 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                   ..style = PaintingStyle.stroke
                   ..strokeWidth = _verseStrokeWidth
                   ..color = _verseStrokeColor!,
-                shadows: [], // No shadow on stroke usually
               ),
             ),
             // Fill Layer
@@ -3009,6 +3120,176 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
           ],
         );
       }
+
+      // UNIFIED DUAL LAYOUT: Matches BatchPostsScreen
+      if (_showDual && _secondaryText.isNotEmpty) {
+        // SECONDARY STYLE
+        final secStyle = _getFont(
+          _secFont,
+          _secTextSize,
+          _secEffect == 'Gradient' || _secEffect == 'Gold'
+              ? Colors.white
+              : _secColor.withOpacity(_secOpacity),
+          _secBold ? FontWeight.bold : FontWeight.normal,
+        ).copyWith(
+          height: _secLineHeight,
+          fontStyle: _secItalic ? FontStyle.italic : FontStyle.normal,
+          decoration:
+              _secUnderlined ? TextDecoration.underline : TextDecoration.none,
+          shadows: _getEffectShadows(
+              _secEffect, _hasShadow, _secEffectVal, _secEffectColor),
+        );
+
+        Widget secWidget = _isVerseDynamic
+            ? AutoSizeText(
+                _secondaryText,
+                textAlign: _secTextAlign,
+                style: secStyle,
+                minFontSize: 8,
+                maxLines: _aspectRatio > 1.2 ? 2 : 5,
+                stepGranularity: 1,
+                wrapWords: true,
+              )
+            : Text(
+                _secondaryText,
+                textAlign: _secTextAlign,
+                style: secStyle,
+              );
+
+        // Wrap Secondary for Edit Selection
+        secWidget = GestureDetector(
+          onTap: () => setState(() => _editMode = 'Dual Verse'),
+          child: _applyTextEffect(
+            _secEffect,
+            secWidget,
+            gradientColors: _secGradientColors,
+            begin: _secGradientBegin,
+            end: _secGradientEnd,
+            goldTint: _secEffectColor,
+          ),
+        );
+
+        // Wrap Primary Text in Effect
+        textWidget = _applyTextEffect(
+          _verseEffect,
+          textWidget,
+          gradientColors: _verseGradientColors,
+          begin: _verseGradientBegin,
+          end: _verseGradientEnd,
+          goldTint: _verseEffectColor,
+        );
+
+        // Wrap Primary for Edit Selection
+        if (_verseStrokeWidth > 0 && _verseStrokeColor != null) {
+          // already wrapped and we added effect above
+        } else {
+          textWidget = GestureDetector(
+            onTap: () => setState(() => _editMode = 'Verse'),
+            child: textWidget,
+          );
+        }
+
+        // Build Reference Widget for Dual Mode
+        Widget refWidget = GestureDetector(
+          onTap: () => setState(() => _editMode = 'Reference'),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: (_editMode == 'Reference' && !_isExporting)
+                ? BoxDecoration(
+                    border: Border.all(color: Colors.orange, width: 1.5),
+                    borderRadius: BorderRadius.circular(4))
+                : null,
+            child: _applyTextEffect(
+              _refEffect,
+              gradientColors: _refGradientColors,
+              begin: _refGradientBegin,
+              end: _refGradientEnd,
+              goldTint: _refEffectColor,
+              Container(
+                padding: _refBackgroundColor != null
+                    ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+                    : EdgeInsets.zero,
+                decoration: BoxDecoration(
+                  color: _refBackgroundColor,
+                  borderRadius: BorderRadius.circular(_refBorderRadius),
+                ),
+                child: Text(
+                  widget.verseReference,
+                  textAlign: _refAlign,
+                  style: _getFont(
+                    _refFont,
+                    _refTextSize,
+                    _refEffect == 'Gradient' || _refEffect == 'Gold'
+                        ? Colors.white
+                        : _refColor.withOpacity(_refOpacity),
+                    _refBold ? FontWeight.bold : FontWeight.normal,
+                  ).copyWith(
+                    height: _refLineHeight,
+                    fontStyle: _refItalic ? FontStyle.italic : FontStyle.normal,
+                    shadows: _getEffectShadows(
+                        _refEffect, _hasShadow, _refEffectVal, _refEffectColor),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // Build Secondary Reference Widget for Dual Mode
+        Widget secRefWidget = _secondaryReference.isNotEmpty
+            ? GestureDetector(
+                onTap: () => setState(() => _editMode = 'Dual Ref'),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: (_editMode == 'Dual Ref' && !_isExporting)
+                      ? BoxDecoration(
+                          border: Border.all(color: Colors.orange, width: 1.5),
+                          borderRadius: BorderRadius.circular(4))
+                      : null,
+                  child: _applyTextEffect(
+                    _secRefEffect,
+                    gradientColors: _secRefGradientColors,
+                    begin: _secRefGradientBegin,
+                    end: _secRefGradientEnd,
+                    goldTint: _secRefEffectColor,
+                    Text(
+                      _secondaryReference,
+                      textAlign: _secRefAlign,
+                      style: _getFont(
+                        _secRefFont,
+                        _secRefSize,
+                        _secRefEffect == 'Gradient' || _secRefEffect == 'Gold'
+                            ? Colors.white
+                            : _secRefColor.withOpacity(_secRefOpacity),
+                        _secRefBold ? FontWeight.bold : FontWeight.normal,
+                      ).copyWith(
+                        height: _secRefLineHeight,
+                        fontStyle:
+                            _secRefItalic ? FontStyle.italic : FontStyle.normal,
+                        shadows: _getEffectShadows(_secRefEffect, _hasShadow,
+                            _secRefEffectVal, _secRefEffectColor),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : const SizedBox();
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center, // Main axis for text
+          children: [
+            textWidget,
+            const SizedBox(height: 8),
+            refWidget, // Primary Reference
+            const SizedBox(height: 8),
+            secWidget, // Secondary Verse
+            const SizedBox(height: 4),
+            secRefWidget, // Secondary Reference
+          ],
+        );
+      }
+
       return textWidget;
     }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // For XFile in some versions if needed
 import '../../services/notes_service.dart';
-import '../widgets/note_image_generator.dart';
+import 'share_note_screen.dart';
 
 class NoteDetailScreen extends StatefulWidget {
   final int noteId;
@@ -46,9 +46,11 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
   void _shareNoteAsImage() {
     if (_noteData == null) return;
 
-    showDialog(
-      context: context,
-      builder: (context) => NoteImageGenerator(noteData: _noteData!),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ShareNoteScreen(noteData: _noteData!),
+      ),
     );
   }
 

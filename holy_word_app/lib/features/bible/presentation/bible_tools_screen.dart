@@ -5,6 +5,8 @@ import 'cross_reference_tool_screen.dart';
 import 'highlights_screen.dart';
 import 'audio_bible_screen.dart';
 
+import 'image_generator_dashboard.dart';
+
 class BibleToolsScreen extends StatelessWidget {
   const BibleToolsScreen({super.key});
 
@@ -105,6 +107,21 @@ class BibleToolsScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                     builder: (context) => const HighlightsScreen()),
+              );
+            },
+          ),
+          _buildToolCard(
+            context,
+            icon: Icons.image,
+            title: 'Share Image',
+            color: Colors.indigo.shade100,
+            iconColor: Colors.indigo,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ImageGeneratorDashboard(),
+                ),
               );
             },
           ),

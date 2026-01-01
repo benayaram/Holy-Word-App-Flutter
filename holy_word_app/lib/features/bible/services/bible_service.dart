@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:holy_word_app/core/services/database_service.dart';
 import 'package:holy_word_app/core/providers/language_provider.dart';
 
@@ -21,7 +22,7 @@ class BibleService {
     "ఆదికాండము",
     "నిర్గమకాండము",
     "లేవీయకాండము",
-    "అరణ్యకాండము",
+    "సంఖ్యాకాండము",
     "ద్వితీయోపదేశకాండము",
     "యెహోషువ",
     "న్యాయాధిపతులు",
@@ -448,6 +449,111 @@ class BibleService {
   }
 
   // --- User Data Methods ---
+
+  Future<Map<String, dynamic>> getRandomVerse({String? language}) async {
+    try {
+      bool useTelugu = _isTelugu;
+      bool fetchDual = false;
+      if (language == 'Telugu') useTelugu = true;
+      if (language == 'English') useTelugu = false;
+      if (language == 'Both') {
+        useTelugu = _isTelugu; // Base on app language
+        fetchDual = true;
+      }
+
+      Map<String, dynamic> result = {};
+
+      if (useTelugu) {
+        // Telugu DB: 'verse' table, explicit DB name to avoid ambiguity if _dbName relies on toggle
+        final res = await _dbService.rawQuery(
+          'bsi_te.db',
+          'SELECT id, t FROM verse ORDER BY RANDOM() LIMIT 1',
+          [],
+        );
+        if (res.isEmpty) return {};
+
+        final row = res.first;
+        final id = row['id'] as int;
+        final text = row['t'] as String;
+
+        // Decode ID
+        final bookId = id ~/ 1000000;
+        final chapter = (id % 1000000) ~/ 1000;
+        final verseNum = id % 1000;
+
+        final bookName = (bookId >= 1 && bookId <= _teluguBooks.length)
+            ? _teluguBooks[bookId - 1]
+            : 'Unknown';
+
+        result = {
+          'text': text,
+          'reference': '$bookName $chapter:$verseNum',
+          'book_id': bookId,
+          'chapter': chapter,
+          'verse': verseNum,
+        };
+      } else {
+        // English DB
+        final res = await _dbService.rawQuery(
+          'KJV.db',
+          'SELECT v.*, b.name as book_name FROM KJV_verses v JOIN KJV_books b ON v.book_id = b.id ORDER BY RANDOM() LIMIT 1',
+          [],
+        );
+
+        if (res.isEmpty) return {};
+        final row = res.first;
+
+        result = {
+          'text': row['text'],
+          'reference': '${row['book_name']} ${row['chapter']}:${row['verse']}',
+          'book_id': row['book_id'] as int,
+          'chapter': row['chapter'] as int,
+          'verse': row['verse'] as int,
+        };
+      }
+
+      // If Dual, fetch secondary
+      if (fetchDual && result.isNotEmpty) {
+        final bookId = result['book_id'] as int;
+        final chapter = result['chapter'] as int;
+        final verse = result['verse'] as int;
+
+        String secondaryText = '';
+        String secondaryRef = '';
+
+        if (useTelugu) {
+          // Need English
+          final res = await _dbService.rawQuery(
+              'KJV.db',
+              'SELECT v.*, b.name as book_name FROM KJV_verses v JOIN KJV_books b ON v.book_id = b.id WHERE v.book_id = ? AND v.chapter = ? AND v.verse = ?',
+              [bookId, chapter, verse]);
+          if (res.isNotEmpty) {
+            secondaryText = res.first['text'];
+            secondaryRef = '${res.first['book_name']} $chapter:$verse';
+          }
+        } else {
+          // Need Telugu
+          final id = bookId * 1000000 + chapter * 1000 + verse;
+          final res = await _dbService
+              .rawQuery('bsi_te.db', 'SELECT t FROM verse WHERE id = ?', [id]);
+          if (res.isNotEmpty) {
+            secondaryText = res.first['t'];
+            final tBook = (bookId >= 1 && bookId <= _teluguBooks.length)
+                ? _teluguBooks[bookId - 1]
+                : 'Unknown';
+            secondaryRef = '$tBook $chapter:$verse';
+          }
+        }
+        result['secondary_text'] = secondaryText;
+        result['secondary_reference'] = secondaryRef;
+      }
+
+      return result;
+    } catch (e) {
+      debugPrint('Error getting random verse: $e');
+      return {};
+    }
+  }
 
   Future<void> saveNote(
       String reference, String verseText, String noteContent) async {

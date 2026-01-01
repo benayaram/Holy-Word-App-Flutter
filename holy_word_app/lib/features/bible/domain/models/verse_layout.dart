@@ -212,7 +212,7 @@ class LayoutPresets {
       refColor: Colors.white,
       refEffect: 'None',
       refBackgroundColor:
-          Color(0xFF434343).withOpacity(0.5), // Semi-transparent pill
+          Color(0x80434343), // Semi-transparent pill (0.5 opacity)
       refBorderRadius: 8.0,
       watermarkStyle: 0,
     ),
