@@ -39,7 +39,11 @@ class _ImageGeneratorDashboardState
   bool _showWatermark = true;
   bool _enableDarkTint = false;
   bool _generateSeparately = false; // For "Both" mode
-  String _language = 'Both'; // 'Telugu', 'English', 'Both'
+
+  // Independent Language States
+  String _manualLanguage = 'Both';
+  String _randomLanguage = 'Both';
+  String _batchLanguage = 'Both';
 
   // Font List - synced with ShareVerseScreen implicitly (should be centralized ideally)
   // Font Lists
@@ -72,7 +76,7 @@ class _ImageGeneratorDashboardState
     'Inter',
     'Roboto',
     'Lato',
-    'Merriweather',
+    'Merryweather',
     'Oswald',
     'Raleway',
     'Montserrat',
@@ -124,441 +128,490 @@ class _ImageGeneratorDashboardState
 
   @override
   Widget build(BuildContext context) {
-    // final isTelugu = ref.watch(languageProvider) == 'telugu';
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Image Generator Studio'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Image Generator Studio'),
+          centerTitle: true,
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Manual', icon: Icon(Icons.edit)),
+              Tab(text: 'Surprise Me', icon: Icon(Icons.shuffle)),
+              Tab(text: 'Batch', icon: Icon(Icons.copy_all)),
+            ],
+          ),
+        ),
+        body: TabBarView(
           children: [
-            _buildSectionHeader(Icons.edit, 'Manual Selection', Colors.blue),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+            _buildManualTab(),
+            _buildRandomTab(),
+            _buildBatchTab(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- TAB 1: MANUAL SELECTION ---
+  Widget _buildManualTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildLanguageSelector(
+            label: 'Language',
+            value: _manualLanguage,
+            onChanged: (v) => setState(() => _manualLanguage = v!),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            elevation: 2,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  const Text('Select a verse to design:',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 16),
+                  BibleLocationSelector(
+                    bookId: _selectedBookId,
+                    chapter: _selectedChapter,
+                    verse: _selectedVerse,
+                    bookName: _selectedBookName,
+                    onSelectionChanged: (bookId, chapter, verse) async {
+                      setState(() {
+                        _selectedBookId = bookId;
+                        _selectedChapter = chapter;
+                        _selectedVerse = verse;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _isLoading ? null : _createFromSelection,
+                    icon: const Icon(Icons.create),
+                    label: const Text('Design Post'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- TAB 2: RANDOM (SURPRISE ME) ---
+  Widget _buildRandomTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildLanguageSelector(
+            label: 'Language',
+            value: _randomLanguage,
+            onChanged: (v) => setState(() => _randomLanguage = v!),
+          ),
+          const SizedBox(height: 32),
+          Card(
+            elevation: 2,
+            color: Colors.purple.shade50,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: InkWell(
+              onTap: _isLoading ? null : _createRandom,
+              borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
                   children: [
-                    const Text('Select a verse to design:',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 16),
-                    BibleLocationSelector(
-                      bookId: _selectedBookId,
-                      chapter: _selectedChapter,
-                      verse: _selectedVerse,
-                      bookName: _selectedBookName,
-                      onSelectionChanged: (bookId, chapter, verse) async {
-                        setState(() {
-                          _selectedBookId = bookId;
-                          _selectedChapter = chapter;
-                          _selectedVerse = verse;
-                        });
-                        // Selection only updates ID, text is fetched on Create
-                      },
+                    const Icon(Icons.auto_awesome,
+                        size: 40, color: Colors.purple),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Surprise Me!',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple),
                     ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _isLoading ? null : _createFromSelection,
-                      icon: const Icon(Icons.create),
-                      label: const Text('Design Post'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 48),
-                      ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Get a random verse and start designing',
+                      style: TextStyle(color: Colors.purple.shade700),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-            _buildSectionHeader(
-                Icons.shuffle, 'Quick Random Post', Colors.purple),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 2,
-              color: Colors.purple.shade50,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              child: InkWell(
-                onTap: _isLoading ? null : _createRandom,
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.auto_awesome,
-                          size: 40, color: Colors.purple),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Surprise Me!',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Get a random verse and start designing',
-                        style: TextStyle(color: Colors.purple.shade700),
-                      ),
-                    ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- TAB 3: BATCH GENERATOR ---
+  Widget _buildBatchTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildLanguageSelector(
+            label: 'Batch Language',
+            value: _batchLanguage,
+            onChanged: (v) {
+              setState(() {
+                _batchLanguage = v!;
+                // Reset fonts based on language
+                if (_batchLanguage == 'Telugu') {
+                  _batchVerseFont = 'Mandali';
+                  _batchReferenceFont = 'Mandali';
+                } else if (_batchLanguage == 'English') {
+                  _batchVerseFont = 'Roboto';
+                  _batchReferenceFont = 'Roboto';
+                } else {
+                  // Standard for Both
+                  _batchVerseFont = 'Mandali';
+                  _batchSecondaryFont = 'Roboto';
+                }
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+          Card(
+            elevation: 2,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Generate Multiple Posts at Once',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            _buildSectionHeader(
-                Icons.copy_all, 'Batch Generator', Colors.orange),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Generate Multiple Posts at Once',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                        'Create a grid of random verse posts. Tap any to customize.'),
-                    const SizedBox(height: 16),
-                    // Settings Row
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Language Selection (Moved Top)
-                        const Text('Language:',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          value: _language,
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            border: OutlineInputBorder(),
+                  const SizedBox(height: 8),
+                  const Text(
+                      'Create a grid of random verse posts. Tap any to customize.'),
+                  const SizedBox(height: 16),
+
+                  // Settings
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Fonts:',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+
+                      // PRIMARY ROW
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: _batchVerseFont,
+                              decoration: InputDecoration(
+                                  labelText: _batchLanguage == 'English'
+                                      ? 'Verse (Eng)'
+                                      : 'Verse (Tel)',
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  border: const OutlineInputBorder()),
+                              items: (_batchLanguage == 'English'
+                                      ? _englishFonts
+                                      : _teluguFonts)
+                                  .map((f) => DropdownMenuItem(
+                                      value: f,
+                                      child: Text(f,
+                                          style: TextStyle(fontFamily: f))))
+                                  .toList(),
+                              onChanged: (v) =>
+                                  setState(() => _batchVerseFont = v!),
+                            ),
                           ),
-                          items: const [
-                            DropdownMenuItem(
-                                value: 'Telugu', child: Text('Telugu Only')),
-                            DropdownMenuItem(
-                                value: 'English', child: Text('English Only')),
-                            DropdownMenuItem(
-                                value: 'Both', child: Text('Both (Parallel)')),
-                          ],
-                          onChanged: (v) {
-                            setState(() {
-                              _language = v!;
-                              // Reset fonts based on language
-                              if (_language == 'Telugu') {
-                                _batchVerseFont = 'Mandali';
-                                _batchReferenceFont = 'Mandali';
-                              } else if (_language == 'English') {
-                                _batchVerseFont = 'Roboto';
-                                _batchReferenceFont = 'Roboto';
-                              } else {
-                                _batchVerseFont = 'Mandali';
-                                _batchSecondaryFont = 'Roboto';
-                              }
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: _batchReferenceFont,
+                              decoration: InputDecoration(
+                                  labelText: _batchLanguage == 'English'
+                                      ? 'Ref (Eng)'
+                                      : 'Ref (Tel)',
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  border: const OutlineInputBorder()),
+                              items: (_batchLanguage == 'English'
+                                      ? _englishFonts
+                                      : _teluguFonts)
+                                  .map((f) => DropdownMenuItem(
+                                      value: f,
+                                      child: Text(f,
+                                          style: TextStyle(fontFamily: f))))
+                                  .toList(),
+                              onChanged: (v) =>
+                                  setState(() => _batchReferenceFont = v!),
+                            ),
+                          ),
+                        ],
+                      ),
 
-                        const Text('Fonts:',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-
-                        // PRIMARY ROW
+                      // SECONDARY ROW (Only if BOTH)
+                      if (_batchLanguage == 'Both') ...[
+                        const SizedBox(height: 12),
                         Row(
                           children: [
                             Expanded(
                               child: DropdownButtonFormField<String>(
-                                value: _batchVerseFont,
-                                decoration: InputDecoration(
-                                    labelText: _language == 'English'
-                                        ? 'Verse (Eng)'
-                                        : 'Verse (Tel)',
-                                    contentPadding: const EdgeInsets.symmetric(
+                                value: _batchSecondaryFont,
+                                decoration: const InputDecoration(
+                                    labelText: 'Verse 2 (Eng)',
+                                    contentPadding: EdgeInsets.symmetric(
                                         horizontal: 8, vertical: 4),
-                                    border: const OutlineInputBorder()),
-                                items: (_language == 'English'
-                                        ? _englishFonts
-                                        : _teluguFonts)
+                                    border: OutlineInputBorder()),
+                                items: _englishFonts
                                     .map((f) => DropdownMenuItem(
                                         value: f,
                                         child: Text(f,
                                             style: TextStyle(fontFamily: f))))
                                     .toList(),
                                 onChanged: (v) =>
-                                    setState(() => _batchVerseFont = v!),
+                                    setState(() => _batchSecondaryFont = v!),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: DropdownButtonFormField<String>(
-                                value: _batchReferenceFont,
-                                decoration: InputDecoration(
-                                    labelText: _language == 'English'
-                                        ? 'Ref (Eng)'
-                                        : 'Ref (Tel)',
-                                    contentPadding: const EdgeInsets.symmetric(
+                                value: _batchSecondaryRefFont,
+                                decoration: const InputDecoration(
+                                    labelText: 'Ref 2 (Eng)',
+                                    contentPadding: EdgeInsets.symmetric(
                                         horizontal: 8, vertical: 4),
-                                    border: const OutlineInputBorder()),
-                                items: (_language == 'English'
-                                        ? _englishFonts
-                                        : _teluguFonts)
+                                    border: OutlineInputBorder()),
+                                items: _englishFonts
                                     .map((f) => DropdownMenuItem(
                                         value: f,
                                         child: Text(f,
                                             style: TextStyle(fontFamily: f))))
                                     .toList(),
                                 onChanged: (v) =>
-                                    setState(() => _batchReferenceFont = v!),
+                                    setState(() => _batchSecondaryRefFont = v!),
                               ),
                             ),
                           ],
                         ),
-
-                        // SECONDARY ROW (Only if BOTH)
-                        if (_language == 'Both') ...[
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  value: _batchSecondaryFont,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Verse 2 (Eng)',
-                                      contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
-                                      border: OutlineInputBorder()),
-                                  items: _englishFonts
-                                      .map((f) => DropdownMenuItem(
-                                          value: f,
-                                          child: Text(f,
-                                              style: TextStyle(fontFamily: f))))
-                                      .toList(),
-                                  onChanged: (v) =>
-                                      setState(() => _batchSecondaryFont = v!),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  value: _batchSecondaryRefFont,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Ref 2 (Eng)',
-                                      contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
-                                      border: OutlineInputBorder()),
-                                  items: _englishFonts
-                                      .map((f) => DropdownMenuItem(
-                                          value: f,
-                                          child: Text(f,
-                                              style: TextStyle(fontFamily: f))))
-                                      .toList(),
-                                  onChanged: (v) => setState(
-                                      () => _batchSecondaryRefFont = v!),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          CheckboxListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: const Text(
-                                'Split: Separate Telugu & English Posts'),
-                            subtitle: const Text(
-                                'Generates independent cards for each language'),
-                            value: _generateSeparately,
-                            onChanged: (v) =>
-                                setState(() => _generateSeparately = v!),
-                          ),
-                        ],
-
-                        const SizedBox(height: 12),
-                        const Text('Background & Layout:',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: DropdownButtonFormField<int>(
-                                value: _batchOrientation,
-                                decoration: const InputDecoration(
-                                    labelText: 'Orientation',
-                                    contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    border: OutlineInputBorder()),
-                                items: const [
-                                  DropdownMenuItem(
-                                      value: 0, child: Text('Portrait (9:16)')),
-                                  DropdownMenuItem(
-                                      value: 1, child: Text('Square (1:1)')),
-                                  DropdownMenuItem(
-                                      value: 2,
-                                      child: Text('Landscape (16:9)')),
-                                ],
-                                onChanged: (v) =>
-                                    setState(() => _batchOrientation = v!),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        // Background Selector
-                        DropdownButtonFormField<String>(
-                          value: _bgType,
-                          decoration: const InputDecoration(
-                              labelText: 'Background Style',
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              border: OutlineInputBorder()),
-                          items: const [
-                            DropdownMenuItem(
-                                value: 'Random', child: Text('Random Colors')),
-                            DropdownMenuItem(
-                                value: 'Gradient',
-                                child: Text('Select Gradient')),
-                            DropdownMenuItem(
-                                value: 'Image', child: Text('Custom Image')),
-                          ],
-                          onChanged: (v) {
-                            setState(() => _bgType = v!);
-                            if (v == 'Image' && _customImage == null) {
-                              _pickImage();
-                            }
-                          },
-                        ),
-
-                        // Language & Customization
-                        const SizedBox(height: 16),
-
                         const SizedBox(height: 8),
                         CheckboxListTile(
-                          title: const Text('Show Watermark'),
-                          value: _showWatermark,
                           contentPadding: EdgeInsets.zero,
-                          onChanged: (v) => setState(() => _showWatermark = v!),
-                        ),
-                        if (_bgType == 'Image')
-                          CheckboxListTile(
-                            title: const Text('Enable Dark Tint'),
-                            subtitle: const Text(
-                                'Improves text readability on images'),
-                            value: _enableDarkTint,
-                            contentPadding: EdgeInsets.zero,
-                            onChanged: (v) =>
-                                setState(() => _enableDarkTint = v!),
-                          ),
-
-                        const SizedBox(height: 24),
-                        // Count Field
-                        if (_bgType == 'Image' && _customImage != null) ...[
-                          const SizedBox(height: 8),
-                          Stack(children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(_customImage!,
-                                  height: 100,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover),
-                            ),
-                            Positioned(
-                                right: 4,
-                                top: 4,
-                                child: CircleAvatar(
-                                    backgroundColor: Colors.white,
-                                    child: IconButton(
-                                        icon: const Icon(Icons.edit),
-                                        onPressed: _pickImage)))
-                          ]),
-                        ],
-                        if (_bgType == 'Gradient') ...[
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            height: 50,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _gradients.length,
-                              itemBuilder: (context, index) {
-                                final gradient = _gradients[index];
-                                return GestureDetector(
-                                  onTap: () => setState(
-                                      () => _selectedGradientIndex = index),
-                                  child: Container(
-                                    width: 50,
-                                    margin: const EdgeInsets.only(right: 8),
-                                    decoration: BoxDecoration(
-                                      gradient:
-                                          LinearGradient(colors: gradient),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: _selectedGradientIndex == index
-                                          ? Border.all(
-                                              color: Colors.black, width: 2)
-                                          : null,
-                                    ),
-                                    child: _selectedGradientIndex == index
-                                        ? const Icon(Icons.check,
-                                            color: Colors.white)
-                                        : null,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _batchCountController,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: 'Quantity (e.g., 10)',
-                                  border: OutlineInputBorder(),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              flex: 2,
-                              child: ElevatedButton.icon(
-                                onPressed: _isLoading ? null : _generateBatch,
-                                icon: const Icon(Icons.grid_view),
-                                label: const Text('Generate Grid'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange,
-                                  foregroundColor: Colors.white,
-                                  minimumSize: const Size(double.infinity, 56),
-                                ),
-                              ),
-                            ),
-                          ],
+                          title: const Text(
+                              'Split: Separate Telugu & English Posts'),
+                          subtitle: const Text(
+                              'Generates independent cards for each language'),
+                          value: _generateSeparately,
+                          onChanged: (v) =>
+                              setState(() => _generateSeparately = v!),
                         ),
                       ],
-                    ),
-                  ],
-                ),
+
+                      const SizedBox(height: 12),
+                      const Text('Background & Layout:',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<int>(
+                              value: _batchOrientation,
+                              decoration: const InputDecoration(
+                                  labelText: 'Orientation',
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  border: OutlineInputBorder()),
+                              items: const [
+                                DropdownMenuItem(
+                                    value: 0, child: Text('Portrait (9:16)')),
+                                DropdownMenuItem(
+                                    value: 1, child: Text('Square (1:1)')),
+                                DropdownMenuItem(
+                                    value: 2, child: Text('Landscape (16:9)')),
+                              ],
+                              onChanged: (v) =>
+                                  setState(() => _batchOrientation = v!),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Background Selector
+                      DropdownButtonFormField<String>(
+                        value: _bgType,
+                        decoration: const InputDecoration(
+                            labelText: 'Background Style',
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            border: OutlineInputBorder()),
+                        items: const [
+                          DropdownMenuItem(
+                              value: 'Random', child: Text('Random Colors')),
+                          DropdownMenuItem(
+                              value: 'Gradient',
+                              child: Text('Select Gradient')),
+                          DropdownMenuItem(
+                              value: 'Image', child: Text('Custom Image')),
+                        ],
+                        onChanged: (v) {
+                          setState(() => _bgType = v!);
+                          if (v == 'Image' && _customImage == null) {
+                            _pickImage();
+                          }
+                        },
+                      ),
+
+                      // Customization
+                      const SizedBox(height: 8),
+                      CheckboxListTile(
+                        title: const Text('Show Watermark'),
+                        value: _showWatermark,
+                        contentPadding: EdgeInsets.zero,
+                        onChanged: (v) => setState(() => _showWatermark = v!),
+                      ),
+                      if (_bgType == 'Image')
+                        CheckboxListTile(
+                          title: const Text('Enable Dark Tint'),
+                          subtitle:
+                              const Text('Improves text readability on images'),
+                          value: _enableDarkTint,
+                          contentPadding: EdgeInsets.zero,
+                          onChanged: (v) =>
+                              setState(() => _enableDarkTint = v!),
+                        ),
+
+                      const SizedBox(height: 24),
+                      // Count Field
+                      if (_bgType == 'Image' && _customImage != null) ...[
+                        const SizedBox(height: 8),
+                        Stack(children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(_customImage!,
+                                height: 100,
+                                width: double.infinity,
+                                fit: BoxFit.cover),
+                          ),
+                          Positioned(
+                              right: 4,
+                              top: 4,
+                              child: CircleAvatar(
+                                  backgroundColor: Colors.white,
+                                  child: IconButton(
+                                      icon: const Icon(Icons.edit),
+                                      onPressed: _pickImage)))
+                        ]),
+                      ],
+                      if (_bgType == 'Gradient') ...[
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 50,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _gradients.length,
+                            itemBuilder: (context, index) {
+                              final gradient = _gradients[index];
+                              return GestureDetector(
+                                onTap: () => setState(
+                                    () => _selectedGradientIndex = index),
+                                child: Container(
+                                  width: 50,
+                                  margin: const EdgeInsets.only(right: 8),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(colors: gradient),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: _selectedGradientIndex == index
+                                        ? Border.all(
+                                            color: Colors.black, width: 2)
+                                        : null,
+                                  ),
+                                  child: _selectedGradientIndex == index
+                                      ? const Icon(Icons.check,
+                                          color: Colors.white)
+                                      : null,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _batchCountController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Quantity (e.g., 10)',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            flex: 2,
+                            child: ElevatedButton.icon(
+                              onPressed: _isLoading ? null : _generateBatch,
+                              icon: const Icon(Icons.grid_view),
+                              label: const Text('Generate Grid'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size(double.infinity, 56),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageSelector(
+      {required String label,
+      required String value,
+      required ValueChanged<String?> onChanged}) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: DropdownButtonFormField<String>(
+          value: value,
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.language),
+          ),
+          items: const [
+            DropdownMenuItem(value: 'Telugu', child: Text('Telugu Only')),
+            DropdownMenuItem(value: 'English', child: Text('English Only')),
+            DropdownMenuItem(value: 'Both', child: Text('Both (Parallel)')),
           ],
+          onChanged: onChanged,
         ),
       ),
     );
@@ -580,38 +633,14 @@ class _ImageGeneratorDashboardState
     }
   }
 
-  Widget _buildSectionHeader(IconData icon, String title, Color color) {
-    return Row(
-      children: [
-        Icon(icon, color: color),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color.withOpacity(0.8),
-          ),
-        ),
-      ],
-    );
-  }
-
   Future<void> _createFromSelection() async {
     setState(() => _isLoading = true);
     try {
       final bibleService = ref.read(bibleServiceProvider);
-      // Fetch text for selected location
-      final verses =
-          await bibleService.getVerses(_selectedBookId, _selectedChapter);
-
-      // We only have the first verse ID from selector, and no "end" verse.
-      // Selector selects ONE verse start usually.
-      // Let's find the verse text.
-      final verseData = verses.firstWhere(
-        (v) => v['verse'] == _selectedVerse,
-        orElse: () => <String, Object>{},
-      );
+      // Use _manualLanguage
+      final verseData = await bibleService.getVerseForSelection(
+          _selectedBookId, _selectedChapter, _selectedVerse,
+          language: _manualLanguage);
 
       if (verseData.isEmpty) {
         if (mounted) {
@@ -621,21 +650,15 @@ class _ImageGeneratorDashboardState
         return;
       }
 
-      final text = verseData['text'] ?? '';
-      // We need book name.
-      final books = await bibleService.getBooks();
-      final book = books.firstWhere((b) => b['id'] == _selectedBookId);
-      final bookName = book['name'];
-
-      final reference = '$bookName $_selectedChapter:$_selectedVerse';
-
       if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ShareVerseScreen(
-            verseText: text,
-            verseReference: reference,
+            verseText: verseData['text'],
+            verseReference: verseData['reference'],
+            parallelText: verseData['secondary_text'],
+            parallelReference: verseData['secondary_reference'],
             bookId: _selectedBookId,
             chapter: _selectedChapter,
             verseNumbers: [_selectedVerse],
@@ -657,7 +680,8 @@ class _ImageGeneratorDashboardState
     setState(() => _isLoading = true);
     try {
       final bibleService = ref.read(bibleServiceProvider);
-      final data = await bibleService.getRandomVerse();
+      // Use _randomLanguage
+      final data = await bibleService.getRandomVerse(language: _randomLanguage);
 
       if (data.isEmpty) return;
 
@@ -668,6 +692,8 @@ class _ImageGeneratorDashboardState
           builder: (context) => ShareVerseScreen(
             verseText: data['text'],
             verseReference: data['reference'],
+            parallelText: data['secondary_text'],
+            parallelReference: data['secondary_reference'],
             bookId: data['book_id'],
             chapter: data['chapter'],
             verseNumbers: [data['verse']],
@@ -709,7 +735,7 @@ class _ImageGeneratorDashboardState
           customImage: _customImage,
           showWatermark: _showWatermark,
           enableDarkTint: _enableDarkTint,
-          language: _language,
+          language: _batchLanguage, // Use _batchLanguage
           secondaryFont: _batchSecondaryFont,
           secondaryRefFont: _batchSecondaryRefFont,
           generateSeparately: _generateSeparately,

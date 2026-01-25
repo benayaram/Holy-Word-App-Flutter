@@ -10,6 +10,7 @@ import 'package:archive/archive_io.dart';
 import '../services/bible_service.dart';
 import 'share_verse_screen.dart';
 import 'package:screenshot/screenshot.dart';
+import 'package:holy_word_app/core/providers/language_provider.dart';
 
 import 'package:pdf/widgets.dart' as pw;
 import 'package:auto_size_text/auto_size_text.dart';
@@ -76,27 +77,55 @@ class _BatchPostsScreenState extends ConsumerState<BatchPostsScreen> {
 
   Future<void> _generatePosts() async {
     final bibleService = ref.read(bibleServiceProvider);
+    final languageCode = ref.read(languageProvider);
+    final isAppTelugu = languageCode == 'telugu';
     final List<Map<String, dynamic>> generated = [];
 
     // Safety Cap
-    int target = widget.count;
-    if (target > 50) target = 50;
+    int count = widget.count;
+    if (count > 50) count = 50;
+
+    // Calculate Target Count
+    // If Split enabled: we want 'count' PAIRS, so 'count' * 2 items.
+    int target = (widget.language == 'Both' && widget.generateSeparately)
+        ? count * 2
+        : count;
 
     int index = 0;
     int attempts = 0;
-    while (generated.length < target && attempts < target * 3) {
+
+    while (generated.length < target && attempts < target * 6) {
       attempts++;
       // Fetch Random Verse with Language
       final data = await bibleService.getRandomVerse(language: widget.language);
+
       if (data.isNotEmpty) {
         // SPLIT GENERATION CHECK
         if (widget.language == 'Both' && widget.generateSeparately) {
+          // Identify Languages based on App Language settings
+          // Dashboard assumes: Primary Font = Telugu Font, Secondary Font = English Font
+          String? teluguText =
+              isAppTelugu ? data['text'] : data['secondary_text'];
+          String? teluguRef =
+              isAppTelugu ? data['reference'] : data['secondary_reference'];
+
+          String? englishText =
+              isAppTelugu ? data['secondary_text'] : data['text'];
+          String? englishRef =
+              isAppTelugu ? data['secondary_reference'] : data['reference'];
+
           // 1. Telugu Post
-          if (data['text_telugu'] != null) {
+          // Ensure we don't exceed target/2 for balance?
+          // Actually user wants "10 telugu and 10 english".
+          // If we just loop, we get them in pairs.
+
+          if (teluguText != null && teluguText.isNotEmpty) {
             generated.add({
               ...data,
-              'text': data['text_telugu'],
-              'reference': data['reference_telugu'] ?? data['reference'],
+              'text': teluguText,
+              'reference': teluguRef,
+              'secondary_text': null,
+              'secondary_reference': null,
               'style': _generateStyle(index,
                   overrideFont: widget.verseFont,
                   overrideRefFont: widget.referenceFont),
@@ -104,12 +133,13 @@ class _BatchPostsScreenState extends ConsumerState<BatchPostsScreen> {
             index++;
           }
 
-          // 2. English Post
-          if (data['text_english'] != null) {
+          if (englishText != null && englishText.isNotEmpty) {
             generated.add({
               ...data,
-              'text': data['text_english'],
-              'reference': data['reference_english'] ?? data['reference'],
+              'text': englishText,
+              'reference': englishRef,
+              'secondary_text': null,
+              'secondary_reference': null,
               'style': _generateStyle(index,
                   overrideFont: widget.secondaryFont,
                   overrideRefFont: widget.secondaryRefFont),
@@ -117,7 +147,7 @@ class _BatchPostsScreenState extends ConsumerState<BatchPostsScreen> {
             index++;
           }
         } else {
-          // Standard / Parallel Generation
+          // Standard / Parallel Generation in Single Card
           final style = _generateStyle(index);
           generated.add({
             ...data,

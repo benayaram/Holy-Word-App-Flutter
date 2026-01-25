@@ -555,6 +555,101 @@ class BibleService {
     }
   }
 
+  Future<Map<String, dynamic>> getVerseForSelection(
+      int bookId, int chapter, int verse,
+      {String? language}) async {
+    try {
+      bool useTelugu = _isTelugu;
+      bool fetchDual = false;
+      if (language == 'Telugu') useTelugu = true;
+      if (language == 'English') useTelugu = false;
+      if (language == 'Both') {
+        useTelugu = _isTelugu; // Base on app language for primary
+        fetchDual = true;
+      }
+
+      Map<String, dynamic> result = {};
+
+      // 1. Fetch Primary Text
+      if (useTelugu) {
+        // Calculate ID for Telugu
+        final id = bookId * 1000000 + chapter * 1000 + verse;
+        final res = await _dbService
+            .rawQuery('bsi_te.db', 'SELECT t FROM verse WHERE id = ?', [id]);
+
+        if (res.isNotEmpty) {
+          final text = res.first['t'] as String;
+          final bookName = (bookId >= 1 && bookId <= _teluguBooks.length)
+              ? _teluguBooks[bookId - 1]
+              : 'Unknown';
+          result = {
+            'text': text,
+            'reference': '$bookName $chapter:$verse',
+            'book_id': bookId,
+            'chapter': chapter,
+            'verse': verse,
+          };
+        }
+      } else {
+        // English
+        final res = await _dbService.rawQuery(
+            'KJV.db',
+            'SELECT v.*, b.name as book_name FROM KJV_verses v JOIN KJV_books b ON v.book_id = b.id WHERE v.book_id = ? AND v.chapter = ? AND v.verse = ?',
+            [bookId, chapter, verse]);
+        if (res.isNotEmpty) {
+          final row = res.first;
+          result = {
+            'text': row['text'],
+            'reference':
+                '${row['book_name']} ${row['chapter']}:${row['verse']}',
+            'book_id': row['book_id'] as int,
+            'chapter': row['chapter'] as int,
+            'verse': row['verse'] as int,
+          };
+        }
+      }
+
+      if (result.isEmpty) return {};
+
+      // 2. Fetch Dual (Secondary)
+      if (fetchDual) {
+        String secondaryText = '';
+        String secondaryRef = '';
+
+        if (useTelugu) {
+          // Need English as Secondary
+          final res = await _dbService.rawQuery(
+              'KJV.db',
+              'SELECT v.*, b.name as book_name FROM KJV_verses v JOIN KJV_books b ON v.book_id = b.id WHERE v.book_id = ? AND v.chapter = ? AND v.verse = ?',
+              [bookId, chapter, verse]);
+          if (res.isNotEmpty) {
+            secondaryText = res.first['text'];
+            secondaryRef = '${res.first['book_name']} $chapter:$verse';
+          }
+        } else {
+          // Need Telugu as Secondary
+          final id = bookId * 1000000 + chapter * 1000 + verse;
+          final res = await _dbService
+              .rawQuery('bsi_te.db', 'SELECT t FROM verse WHERE id = ?', [id]);
+          if (res.isNotEmpty) {
+            secondaryText = res.first['t'];
+            final tBook = (bookId >= 1 && bookId <= _teluguBooks.length)
+                ? _teluguBooks[bookId - 1]
+                : 'Unknown';
+            secondaryRef = '$tBook $chapter:$verse';
+          }
+        }
+        result['secondary_text'] = secondaryText;
+        result['secondary_reference'] = secondaryRef;
+      }
+
+      return result;
+    } catch (e) {
+      debugPrint('Error getting selection verse: $e');
+      return {};
+    }
+  }
+
   Future<void> saveNote(
       String reference, String verseText, String noteContent) async {
     await _dbService.insert('holy_word_user.db', 'notes', {

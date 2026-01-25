@@ -1605,11 +1605,6 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                                         ? 40
                                                         : 24,
                                                     fit: BoxFit.contain,
-                                                    color: _watermarkTint
-                                                        .withOpacity(
-                                                            _watermarkOpacity),
-                                                    colorBlendMode:
-                                                        BlendMode.srcIn,
                                                   ),
                                                 if (_watermarkStyle == 0)
                                                   const SizedBox(width: 6),
