@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+// import 'package:flutter/services.dart' show rootBundle; // Unused now
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pdf/pdf.dart';
@@ -197,26 +199,41 @@ class _ShareNoteScreenState extends State<ShareNoteScreen> {
   Future<void> _shareImages() async {
     setState(() => _isExporting = true);
     try {
+      final tempDir = await getTemporaryDirectory();
       List<XFile> files = [];
 
       for (int i = 0; i < _pages.length; i++) {
+        // Capture image with increased delay and proper context wrapper
         final imageBytes = await _screenshotController.captureFromWidget(
-            NoteCardWidget(data: _pages[i]),
+            Material(
+              type: MaterialType.transparency,
+              child: Directionality(
+                textDirection: TextDirection.ltr,
+                child: NoteCardWidget(data: _pages[i]),
+              ),
+            ),
             pixelRatio: 2.0,
-            delay: const Duration(milliseconds: 20),
+            delay: const Duration(milliseconds: 100), // Increased to 100ms
             context: context,
             targetSize: const Size(600, 1066) // 9:16 approximate HD
             );
 
-        files.add(XFile.fromData(
-          imageBytes,
-          name: 'note_page_${i + 1}.png',
-          mimeType: 'image/png',
-        ));
+        // Write to temp file
+        final fileName =
+            'note_page_${i + 1}_${DateTime.now().millisecondsSinceEpoch}.png';
+        final file = File('${tempDir.path}/$fileName');
+        await file.writeAsBytes(imageBytes);
+
+        files.add(XFile(file.path));
       }
 
       if (files.isNotEmpty) {
         await Share.shareXFiles(files, text: 'Shared via Holy Word App');
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('No images generated')));
+        }
       }
     } catch (e) {
       debugPrint('Error sharing images: $e');
@@ -234,79 +251,36 @@ class _ShareNoteScreenState extends State<ShareNoteScreen> {
     try {
       final pdf = pw.Document();
 
-      // Load Font for Telugu Support
-      final fontData =
-          await rootBundle.load('assets/fonts/mandali_regular.ttf');
-      final ttf = pw.Font.ttf(fontData);
+      // We will capture each page as an image and place it in the PDF.
+      // This ensures exact visual fidelity including Telugu text.
 
-      for (var page in _pages) {
+      for (int i = 0; i < _pages.length; i++) {
+        final imageBytes = await _screenshotController.captureFromWidget(
+            Material(
+              type: MaterialType.transparency,
+              child: Directionality(
+                textDirection: TextDirection.ltr,
+                child: NoteCardWidget(data: _pages[i]),
+              ),
+            ),
+            pixelRatio: 2.0,
+            delay: const Duration(milliseconds: 100), // Increased delay
+            context: context,
+            targetSize: const Size(600, 1066));
+        final image = pw.MemoryImage(imageBytes);
         pdf.addPage(
           pw.Page(
             pageFormat: PdfPageFormat.a4,
             build: (pw.Context context) {
-              return pw.Container(
-                padding: const pw.EdgeInsets.all(30),
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.white,
-                  border: pw.Border.all(color: PdfColors.grey, width: 2),
-                  borderRadius: pw.BorderRadius.circular(10),
-                ),
-                child: pw.Column(
-                  crossAxisAlignment:
-                      pw.CrossAxisAlignment.center, // Center alignment
-                  children: [
-                    pw.Header(
-                        level: 0,
-                        child: pw.Text(page.title,
-                            style: pw.TextStyle(
-                                font: ttf, // Use custom font
-                                fontSize: 24,
-                                fontWeight: pw.FontWeight.bold))),
-                    pw.Text(page.date,
-                        style: const pw.TextStyle(
-                            fontSize: 12, color: PdfColors.grey)),
-                    pw.SizedBox(height: 20),
-                    if (page.isVersePage && page.verse != null) ...[
-                      pw.Spacer(),
-                      pw.Center(
-                          child: pw.Text(
-                        page.verse!['verse_text'] ?? '',
-                        textAlign: pw.TextAlign.center,
-                        style: pw.TextStyle(
-                            font: ttf, // Use custom font
-                            fontSize: 24,
-                            fontWeight: pw.FontWeight.bold,
-                            fontStyle: pw.FontStyle.italic),
-                      )),
-                      pw.SizedBox(height: 20),
-                      pw.Center(
-                          child: pw.Text(
-                        page.verse!['reference'] ?? '',
-                        style: pw.TextStyle(
-                            font: ttf, fontSize: 18, color: PdfColors.blue),
-                      )),
-                      pw.Spacer(),
-                    ] else ...[
-                      pw.Text(page.contentChunk,
-                          textAlign: pw.TextAlign.center, // Center alignment
-                          style: pw.TextStyle(font: ttf, fontSize: 14)),
-                      pw.Spacer(),
-                    ],
-                    pw.Align(
-                        alignment: pw.Alignment.bottomRight,
-                        child: pw.Text(
-                            'Page ${page.pageIndex} / ${page.totalPages}',
-                            style: const pw.TextStyle(
-                                fontSize: 10, color: PdfColors.grey))),
-                  ],
-                ),
+              return pw.Center(
+                child: pw.Image(image, fit: pw.BoxFit.contain),
               );
             },
           ),
         );
       }
 
-      // Save PDF to bytes and create XFile directly
+      // Save PDF
       final pdfBytes = await pdf.save();
       final file = XFile.fromData(
         pdfBytes,

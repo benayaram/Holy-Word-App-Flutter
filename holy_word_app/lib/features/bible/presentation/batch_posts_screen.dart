@@ -320,6 +320,11 @@ class _BatchPostsScreenState extends ConsumerState<BatchPostsScreen> {
             tooltip: 'Export ZIP',
             onPressed: _isExporting || _isLoading ? null : _exportZip,
           ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            tooltip: 'Share Images',
+            onPressed: _isExporting || _isLoading ? null : _shareImages,
+          ),
         ],
       ),
       body: _isLoading
@@ -673,6 +678,45 @@ class _BatchPostsScreenState extends ConsumerState<BatchPostsScreen> {
       if (mounted)
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Export failed: $e')));
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
+  }
+
+  Future<void> _shareImages() async {
+    final confirmed = await _showExportPreview('Images');
+    if (!confirmed) return;
+
+    setState(() => _isExporting = true);
+    try {
+      final tempDir = await getTemporaryDirectory();
+      List<XFile> files = [];
+
+      for (int i = 0; i < _posts.length; i++) {
+        final post = _posts[i];
+        final bytes = post['edited_image'] ?? await _capturePost(post);
+
+        if (bytes != null) {
+          final fileName = 'verse_$i.png';
+          final file = File('${tempDir.path}/$fileName');
+          await file.writeAsBytes(bytes);
+          files.add(XFile(file.path));
+        }
+      }
+
+      if (!mounted) return;
+
+      if (files.isNotEmpty) {
+        await Share.shareXFiles(files, text: 'Here are your verses!');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No images generated to share.')));
+      }
+    } catch (e) {
+      debugPrint('Share Error: $e');
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Share failed: $e')));
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }

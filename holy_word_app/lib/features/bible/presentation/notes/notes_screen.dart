@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:holy_word_app/features/bible/services/notes_service.dart';
 import 'note_detail_screen.dart';
+import '../widgets/add_note_dialog.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -124,6 +125,24 @@ class _NotesScreenState extends State<NotesScreen> {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => AddNoteDialog(
+              verseData: const {}, // Empty for manual note
+              onSuccess: () {
+                _loadNotes();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Note Created')),
+                );
+              },
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
+        backgroundColor: Theme.of(context).primaryColor,
       ),
     );
   }

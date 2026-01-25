@@ -3,82 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/bible_service.dart';
 import '../../../../core/providers/language_provider.dart';
 
-class BibleLocationSelector extends ConsumerWidget {
-  final int bookId;
-  final int chapter;
-  final int verse;
-  final String bookName;
-  final Function(int bookId, int chapter, int verse) onSelectionChanged;
-  final bool enableVerseSelection;
-
-  const BibleLocationSelector({
-    super.key,
-    required this.bookId,
-    required this.chapter,
-    required this.verse,
-    required this.bookName,
-    required this.onSelectionChanged,
-    this.enableVerseSelection = true,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return InkWell(
-      onTap: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (context) => _BibleBottomSheet(
-            initialBookId: bookId,
-            initialChapter: chapter,
-            initialVerse: verse,
-            onSelectionChanged: onSelectionChanged,
-            enableVerseSelection: enableVerseSelection,
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              enableVerseSelection
-                  ? '$bookName $chapter:$verse'
-                  : '$bookName $chapter',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: 20,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BibleBottomSheet extends ConsumerStatefulWidget {
+class BiblePickerSheet extends ConsumerStatefulWidget {
   final int initialBookId;
   final int initialChapter;
   final int initialVerse;
-  final Function(int bookId, int chapter, int verse) onSelectionChanged;
+  final Function(int bookId, int chapter, int verse, String language)
+      onSelectionChanged;
   final bool enableVerseSelection;
 
-  const _BibleBottomSheet({
+  const BiblePickerSheet({
+    super.key,
     required this.initialBookId,
     required this.initialChapter,
     required this.initialVerse,
@@ -87,15 +21,16 @@ class _BibleBottomSheet extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_BibleBottomSheet> createState() => _BibleBottomSheetState();
+  ConsumerState<BiblePickerSheet> createState() => _BiblePickerSheetState();
 }
 
-class _BibleBottomSheetState extends ConsumerState<_BibleBottomSheet>
+class _BiblePickerSheetState extends ConsumerState<BiblePickerSheet>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late int _selectedBookId;
   late int _selectedChapter;
   int _selectedVerse = 1;
+  String _selectedLanguage = 'telugu'; // Default, will init from provider
 
   List<Map<String, dynamic>> _books = [];
   List<int> _chapters = [];
@@ -110,19 +45,52 @@ class _BibleBottomSheetState extends ConsumerState<_BibleBottomSheet>
     _selectedBookId = widget.initialBookId;
     _selectedChapter = widget.initialChapter;
     _selectedVerse = widget.initialVerse;
-    _loadData();
+
+    // Defer provider read to after init or just use safe defaults
+    // We'll update language in didChangeDependencies or just force read here if context available?
+    // Safer to set default based on general app setting if possible, or defaulting to Telugu.
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_books.isEmpty) {
+      final currentLang = ref.read(languageProvider);
+      _selectedLanguage = currentLang == 'english' ? 'english' : 'telugu';
+      _loadData();
+    }
   }
 
   Future<void> _loadData() async {
     final bibleService = ref.read(bibleServiceProvider);
     try {
-      final books = await bibleService.getBooks();
+      // NOTE: We need books for the SELECTED language, not just app language.
+      // BibleService.getBooks() relies on its internal language code.
+      // We might need to ask BibleService for books of a specific language
+      // OR re-instantiate BibleService?
+      // Actually BibleService has `getBooks()` which uses `_isTelugu`.
+      // We should probably add `language` param to `getBooks` or just create a temporary service?
+      // Better: add `language` param to `getBooks` in BibleService.
+      // FOR NOW: We will stick to the fact that BibleService is bound to App Language.
+      // Use `getRandomVerse` style logic where we can specify language?
+      // Let's modify BibleService.getBooks to accept language optional.
+
+      // Assuming we updated BibleService or stick to app language for now.
+      // Wait, user wants to switch language IN the picker.
+      // So I must act as if the app language is swapped for this picker.
+
+      // Hack: Since BibleService is immutable with lang code, we can read the provider for the OTHER language if needed?
+      // No, `bibleServiceProvider` returns a service based on `ref.watch(languageProvider)`.
+      // I can manually instantiate `BibleService(selectedLanguage)`!
+
+      final service = BibleService(_selectedLanguage);
+
+      final books = await service.getBooks();
       if (mounted) {
         setState(() {
           _books = books;
           _isLoading = false;
         });
-        // Pre-load chapters for current book
         _loadChapters(_selectedBookId);
       }
     } catch (e) {
@@ -131,15 +99,14 @@ class _BibleBottomSheetState extends ConsumerState<_BibleBottomSheet>
   }
 
   Future<void> _loadChapters(int bookId) async {
-    final bibleService = ref.read(bibleServiceProvider);
+    final service = BibleService(_selectedLanguage);
     try {
-      final chapters = await bibleService.getChapters(bookId);
+      final chapters = await service.getChapters(bookId);
       if (mounted) {
         setState(() {
           _chapters = chapters;
         });
         if (widget.enableVerseSelection) {
-          // Pre-load verses for current chapter only if needed
           _loadVerses(bookId, _selectedChapter);
         }
       }
@@ -149,9 +116,9 @@ class _BibleBottomSheetState extends ConsumerState<_BibleBottomSheet>
   }
 
   Future<void> _loadVerses(int bookId, int chapter) async {
-    final bibleService = ref.read(bibleServiceProvider);
+    final service = BibleService(_selectedLanguage);
     try {
-      final verses = await bibleService.getVerses(bookId, chapter);
+      final verses = await service.getVerses(bookId, chapter);
       if (mounted) {
         setState(() {
           _verses = verses;
@@ -164,28 +131,58 @@ class _BibleBottomSheetState extends ConsumerState<_BibleBottomSheet>
 
   @override
   Widget build(BuildContext context) {
-    final isTelugu = ref.watch(languageProvider) == 'telugu';
+    // We use local _selectedLanguage instead of ref.watch(languageProvider) for UI
+    final isTelugu = _selectedLanguage == 'telugu';
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         children: [
-          // Drag Handle
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
+          // Header with Drag Handle & Language Toggle
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox(width: 48), // Spacer
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // Language Toggle
+                DropdownButton<String>(
+                    value: _selectedLanguage,
+                    underline: const SizedBox(),
+                    icon: const Icon(Icons.language),
+                    items: const [
+                      DropdownMenuItem(value: 'telugu', child: Text('Telugu')),
+                      DropdownMenuItem(
+                          value: 'english', child: Text('English')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null && val != _selectedLanguage) {
+                        setState(() {
+                          _selectedLanguage = val;
+                          // Reset selection potentially?
+                          // Keep book ID if possible (1-66 is standard).
+                          // Reload data
+                          _isLoading = true;
+                        });
+                        _loadData();
+                      }
+                    }),
+              ],
             ),
           ),
+
           // Tabs
           TabBar(
             controller: _tabController,
@@ -212,9 +209,8 @@ class _BibleBottomSheetState extends ConsumerState<_BibleBottomSheet>
                           _loadVerses(_selectedBookId, val);
                           _tabController.animateTo(2); // Move to Verse
                         } else {
-                          // Complete selection immediately
-                          widget.onSelectionChanged(
-                              _selectedBookId, _selectedChapter, 1);
+                          widget.onSelectionChanged(_selectedBookId,
+                              _selectedChapter, 1, _selectedLanguage);
                           Navigator.pop(context);
                         }
                       }, _selectedChapter),
@@ -223,8 +219,11 @@ class _BibleBottomSheetState extends ConsumerState<_BibleBottomSheet>
                             _verses.map((v) => v['verse'] as int).toList(),
                             (val) {
                           _selectedVerse = val;
-                          widget.onSelectionChanged(_selectedBookId,
-                              _selectedChapter, _selectedVerse);
+                          widget.onSelectionChanged(
+                              _selectedBookId,
+                              _selectedChapter,
+                              _selectedVerse,
+                              _selectedLanguage);
                           Navigator.pop(context);
                         }, _selectedVerse),
                     ],
@@ -242,8 +241,19 @@ class _BibleBottomSheetState extends ConsumerState<_BibleBottomSheet>
       itemBuilder: (context, index) {
         final book = _books[index];
         final bookId = book['id'] as int;
-        final name =
-            isTelugu ? (book['telugu_name'] ?? book['name']) : book['name'];
+        // If isTelugu is true, show Telugu Name, else show English Name (available in book['name'] usually for English DB?)
+        // Wait, _books comes from getBooks().
+        // If _selectedLanguage is Telugu, getBooks returns Telugu names.
+        // If English, getBooks returns keys like 'name' which are English.
+        // So just use book['name'].
+        // For Telugu, the service logic:
+        // if (_isTelugu) return _teluguBooks... name: books[index]
+        // So book['name'] is correct for the selected language.
+
+        final name = book['name'];
+        // Note: Original code had: isTelugu ? (book['telugu_name'] ?? book['name']) : book['name'];
+        // Since we are now using a service instanced with the specific language, 'name' should be correct.
+
         final isSelected = bookId == _selectedBookId;
 
         return ListTile(
@@ -299,13 +309,20 @@ class _BibleBottomSheetState extends ConsumerState<_BibleBottomSheet>
               borderRadius: BorderRadius.circular(12),
               border: isSelected
                   ? null
-                  : Border.all(color: Colors.grey.withOpacity(0.2)),
+                  : Border.all(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .outline
+                          .withOpacity(0.5),
+                    ),
             ),
             alignment: Alignment.center,
             child: Text(
               '$value',
               style: TextStyle(
-                color: isSelected ? Colors.white : null,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.onPrimary
+                    : Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
               ),
             ),

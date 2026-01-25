@@ -169,6 +169,16 @@ class DatabaseService {
     return await db.insert(table, values);
   }
 
+  // Update method
+  Future<int> update(String dbName, String table, Map<String, dynamic> values,
+      {String? where, List<Object?>? whereArgs}) async {
+    if (kIsWeb) {
+      // Allow Web Execution
+    }
+    final db = await getDatabase(dbName);
+    return await db.update(table, values, where: where, whereArgs: whereArgs);
+  }
+
   // Delete method
   Future<int> delete(String dbName, String table,
       {String? where, List<Object?>? whereArgs}) async {

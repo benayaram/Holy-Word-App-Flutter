@@ -94,14 +94,18 @@ class _AddNoteDialogState extends State<AddNoteDialog>
   }
 
   Future<void> _addToNote(int noteId) async {
-    await _notesService.addVerseToNote(
-      noteId,
-      widget.verseData['book_id'],
-      widget.verseData['chapter'],
-      widget.verseData['verse'],
-      widget.verseData['text'],
-      widget.verseData['reference'],
-    );
+    // Only add verse if verseData is valid (not manual note)
+    if (widget.verseData.isNotEmpty &&
+        widget.verseData.containsKey('book_id')) {
+      await _notesService.addVerseToNote(
+        noteId,
+        widget.verseData['book_id'],
+        widget.verseData['chapter'],
+        widget.verseData['verse'],
+        widget.verseData['text'] ?? '',
+        widget.verseData['reference'] ?? '',
+      );
+    }
 
     if (mounted) {
       widget.onSuccess();

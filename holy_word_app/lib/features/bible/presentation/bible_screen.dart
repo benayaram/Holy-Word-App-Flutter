@@ -312,7 +312,9 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
           ? selectedVerses
               .map((v) => '${v['verse']} ${v['telugu_text'] ?? v['text']}')
               .join('\n')
-          : selectedVerses.map((v) => '${v['verse']} ${v['text']}').join('\n'),
+          : selectedVerses
+              .map((v) => '${v['verse']} ${v['text'] ?? ''}')
+              .join('\n'),
       'reference': reference,
     };
 

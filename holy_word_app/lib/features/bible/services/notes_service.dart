@@ -53,6 +53,23 @@ class NotesService {
         where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<int> updateNote(int id, String title, String content) async {
+    return await _dbService.update(
+        'holy_word_user.db',
+        'notes_v2',
+        {
+          'content': content,
+          // 'updated_at': DateTime.now().toIso8601String(), // Schema doesn't have updated_at yet, removing to fix crash
+        },
+        where: 'id = ?',
+        whereArgs: [id]);
+  }
+
+  Future<int> removeVerseFromNote(int noteVerseId) async {
+    return await _dbService.delete('holy_word_user.db', 'note_verses',
+        where: 'id = ?', whereArgs: [noteVerseId]);
+  }
+
   // Method to check if a verse is in any note (for icons)
   Future<List<Map<String, dynamic>>> getAllNoteVerses() async {
     return await _dbService.query('holy_word_user.db', 'note_verses');

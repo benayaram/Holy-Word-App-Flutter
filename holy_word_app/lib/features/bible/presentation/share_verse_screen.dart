@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:holy_word_app/features/bible/services/bible_service.dart';
 import 'package:holy_word_app/features/bible/domain/models/verse_layout.dart';

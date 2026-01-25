@@ -20,11 +20,32 @@ class AudioBibleService {
   Stream<Duration> get positionStream => _audioPlayer.positionStream;
   Stream<Duration?> get durationStream => _audioPlayer.durationStream;
 
+  // State tracking
+  int _currentBookId = 1;
+  int _currentChapter = 1;
+  bool _currentIsTelugu = false;
+
   AudioPlayer get player => _audioPlayer;
+  int get currentBookId => _currentBookId;
+  int get currentChapter => _currentChapter;
 
   Future<void> playChapter(int bookId, int chapter, bool isTelugu) async {
     final baseUrl = isTelugu ? _teluguBaseUrl : _englishBaseUrl;
     final url = "$baseUrl/$bookId/$chapter.mp3";
+
+    // If matches current state, just ensure playing
+    if (_currentBookId == bookId &&
+        _currentChapter == chapter &&
+        _currentIsTelugu == isTelugu) {
+      if (!_audioPlayer.playing) {
+        await _audioPlayer.play();
+      }
+      return;
+    }
+
+    _currentBookId = bookId;
+    _currentChapter = chapter;
+    _currentIsTelugu = isTelugu;
 
     try {
       if (_audioPlayer.playing) {
@@ -55,6 +76,10 @@ class AudioBibleService {
 
   Future<void> seek(Duration position) async {
     await _audioPlayer.seek(position);
+  }
+
+  Future<void> setSpeed(double speed) async {
+    await _audioPlayer.setSpeed(speed);
   }
 
   void dispose() {
