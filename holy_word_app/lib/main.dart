@@ -13,6 +13,9 @@ import 'dart:io';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+// Global Navigator Key for notification navigation
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -48,6 +51,7 @@ class HolyWordApp extends ConsumerWidget {
     final languageCode = ref.watch(languageProvider);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Holy Word App',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

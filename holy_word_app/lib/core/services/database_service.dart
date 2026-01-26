@@ -36,57 +36,118 @@ class DatabaseService {
   }
 
   Future<Database> _initDatabase(String dbName) async {
+    debugPrint('DatabaseService: Initializing $dbName');
     var path = dbName;
 
     if (!kIsWeb) {
       final dbPath = await getDatabasesPath();
       path = join(dbPath, dbName);
+      debugPrint('DatabaseService: Resolved path to $path');
     }
 
-    // For user data (notes), we don't copy from assets, we create schema
+    // For user data (notes)...
     if (dbName == 'holy_word_user.db') {
+      // ... existing user db logic ...
       final db =
           await openDatabase(path, version: 3, onCreate: (db, version) async {
         await _createTables(db);
       }, onUpgrade: (db, oldVersion, newVersion) async {
         await _createTables(db);
       });
-
-      // Robust Check: Ensure tables exist even if migration failed or didn't run
-      // This fixes the "no such table" error for existing users instantly.
       await _createTables(db);
-
       return db;
     }
 
-    // For Bible and Cross Refs, copy from assets if not exists
+    // Bible Database Logic
     var exists = await databaseExists(path);
+    debugPrint('DatabaseService: Exists? $exists');
 
     if (!exists) {
+      debugPrint('DatabaseService: Database does not exist. Copying...');
+      await _copyDatabase(dbName, path);
+    } else {
+      // Verify Integrity
+      debugPrint('DatabaseService: Database exists. Verifying integrity...');
       try {
-        if (!kIsWeb) {
-          // Native: Create directory and copy file
-          await Directory(dirname(path)).create(recursive: true);
-        }
+        final db = await openDatabase(path, readOnly: true);
+        // Debug: List ALL tables
+        final allTables = await db
+            .rawQuery("SELECT name FROM sqlite_master WHERE type='table'");
+        debugPrint('DatabaseService: All tables in DB: $allTables');
 
-        // Load database from asset
-        ByteData data = await rootBundle.load('assets/database/$dbName');
-        Uint8List bytes =
-            data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        final result = await db.rawQuery(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='verse'");
+        debugPrint('DatabaseService: Verification result: $result');
 
-        if (kIsWeb) {
-          // Web: Use databaseFactory to write bytes
-          await databaseFactory.writeDatabaseBytes(path, bytes);
+        if (result.isEmpty) {
+          debugPrint(
+              'DatabaseService: CORRUPT! Table verse missing. Resetting...');
+          await db.close();
+          await _deleteDbFiles(path); // Custom delete
+          await _copyDatabase(dbName, path);
         } else {
-          // Native: Use File API
-          await File(path).writeAsBytes(bytes, flush: true);
+          debugPrint('DatabaseService: Database is valid.');
+          // Debug: Check columns
+          final columns = await db.rawQuery('PRAGMA table_info(verse)');
+          debugPrint('DatabaseService: Columns in verse table: $columns');
+
+          // Debug: Check sample data to see format of 'b' (Book ID)
+          final sampleRows =
+              await db.rawQuery('SELECT b, c, v, t FROM verse LIMIT 3');
+          debugPrint('DatabaseService: Sample rows: $sampleRows');
+
+          return db;
         }
       } catch (e) {
-        throw Exception("Error copying database $dbName: $e");
+        debugPrint(
+            'DatabaseService: Error opening/verifying ($e). Resetting...');
+        await _deleteDbFiles(path);
+        await _copyDatabase(dbName, path);
       }
     }
 
+    debugPrint('DatabaseService: Opening final database instance.');
     return await openDatabase(path, readOnly: true);
+  }
+
+  Future<void> _deleteDbFiles(String path) async {
+    try {
+      await deleteDatabase(path);
+      // Explicitly try deleting journal files just in case
+      final shm = File('$path-shm');
+      final wal = File('$path-wal');
+      if (await shm.exists()) await shm.delete();
+      if (await wal.exists()) await wal.delete();
+      debugPrint('DatabaseService: Deleted database files.');
+    } catch (e) {
+      debugPrint('DatabaseService: Error deleting database files: $e');
+    }
+  }
+
+  Future<void> _copyDatabase(String dbName, String path) async {
+    debugPrint('DatabaseService: Start copying $dbName to $path');
+    try {
+      if (!kIsWeb) {
+        await Directory(dirname(path)).create(recursive: true);
+      }
+
+      ByteData data = await rootBundle.load('assets/database/$dbName');
+      debugPrint(
+          'DatabaseService: Asset loaded. Size: ${data.lengthInBytes} bytes');
+
+      Uint8List bytes =
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+
+      if (kIsWeb) {
+        await databaseFactory.writeDatabaseBytes(path, bytes);
+      } else {
+        await File(path).writeAsBytes(bytes, flush: true);
+      }
+      debugPrint('DatabaseService: Copy successful.');
+    } catch (e) {
+      debugPrint('DatabaseService: COPY FAILED! $e');
+      throw Exception("Error copying database $dbName: $e");
+    }
   }
 
   Future<void> _createTables(Database db) async {
@@ -130,8 +191,20 @@ class DatabaseService {
         chapter INTEGER NOT NULL,
         verse INTEGER NOT NULL,
         color INTEGER NOT NULL,
-        created_at TEXT NOT NULL
-      )
+        created_at TEXT NOT NULL,
+        unique(book_id, chapter, verse)
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS plan_progress (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        plan_id TEXT NOT NULL,
+        day_index INTEGER NOT NULL,
+        is_completed INTEGER DEFAULT 0,
+        completed_date TEXT,
+        unique(plan_id, day_index)
+      );
     ''');
   }
 

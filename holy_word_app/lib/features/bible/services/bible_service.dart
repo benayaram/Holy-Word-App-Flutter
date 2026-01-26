@@ -18,50 +18,82 @@ class BibleService {
   String get _dbName => _languageCode == 'telugu' ? 'bsi_te.db' : 'KJV.db';
   bool get _isTelugu => _languageCode == 'telugu';
 
+  // Fetch full chapter text
+  Future<List<Map<String, dynamic>>> getChapterText(
+      int bookId, int chapter) async {
+    final dbName = _dbName;
+
+    Object bookIdentifier = bookId;
+    if (_isTelugu) {
+      // Convert ID to Telugu Book Name
+      // IDs are 1-based, list is 0-based
+      if (bookId > 0 && bookId <= _teluguBooks.length) {
+        bookIdentifier = _teluguBooks[bookId - 1];
+      }
+    }
+
+    final results = await _dbService.query(
+      dbName,
+      'verse',
+      where: 'b = ? AND c = ?',
+      whereArgs: [bookIdentifier, chapter],
+    );
+
+    // Map DB columns (t, v) to UI keys (text, verse)
+    return results.map((row) {
+      return {
+        'text': row['t'],
+        'verse': row['v'],
+        'book_id': row['b'], // Keeping original value
+        'chapter': row['c'],
+      };
+    }).toList();
+  }
+
   static const List<String> _teluguBooks = [
     "ఆదికాండము",
     "నిర్గమకాండము",
     "లేవీయకాండము",
     "సంఖ్యాకాండము",
-    "ద్వితీయోపదేశకాండము",
-    "యెహోషువ",
+    "ద్వితీయోపదేశకాండమ", // Note: ending 'మ' instead of 'ము' in DB
+    "యెహొషువ", // 'హొ' in DB
     "న్యాయాధిపతులు",
     "రూతు",
-    "1 సమూయేలు",
-    "2 సమూయేలు",
-    "1 రాజులు",
-    "2 రాజులు",
-    "1 దినవృత్తాంతములు",
-    "2 దినవృత్తాంతములు",
+    "సమూయేలు మొదటి గ్రంథము",
+    "సమూయేలు రెండవ గ్రంథము",
+    "రాజులు మొదటి గ్రంథము",
+    "రాజులు రెండవ గ్రంథము",
+    "దినవృత్తాంతములు మొదటి గ్రంథము",
+    "దినవృత్తాంతములు రెండవ గ్రంథము",
     "ఎజ్రా",
-    "నెహెమీయా",
+    "నెహెమ్యా", // 'మ్యా' in DB
     "ఎస్తేరు",
-    "యోబు",
-    "కీర్తనలు",
+    "యోబు గ్రంథము",
+    "కీర్తనల గ్రంథము",
     "సామెతలు",
     "ప్రసంగి",
     "పరమగీతము",
-    "యెషయా",
+    "యెషయా గ్రంథము",
     "యిర్మీయా",
     "విలాపవాక్యములు",
-    "యెహేజ్కేలు",
+    "యెహెజ్కేలు", // 'హె' in DB
     "దానియేలు",
-    "హోషేయ",
+    "హొషేయ", // 'హొ' in DB
     "యోవేలు",
     "ఆమోసు",
-    "ఒబద్యా",
+    "ఓబద్యా", // 'ఓ' in DB
     "యోనా",
     "మీకా",
     "నహూము",
-    "హబకూకు",
+    "హబక్కూకు", // 'క్కూ' in DB
     "జెఫన్యా",
     "హగ్గయి",
     "జెకర్యా",
     "మలాకీ",
-    "మత్తయి",
-    "మార్కు",
-    "లూకా",
-    "యోహాను",
+    "మత్తయి సువార్త",
+    "మార్కు సువార్త",
+    "లూకా సువార్త",
+    "యోహాను సువార్త",
     "అపొస్తలుల కార్యములు",
     "రోమీయులకు",
     "1 కొరింథీయులకు",
@@ -84,7 +116,7 @@ class BibleService {
     "2 యోహాను",
     "3 యోహాను",
     "యూదా",
-    "ప్రకటన"
+    "ప్రకటన గ్రంథము"
   ];
 
   static const List<String> _englishBooks = [

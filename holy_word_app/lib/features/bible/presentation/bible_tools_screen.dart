@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'bible_screen.dart';
 import 'notes/notes_screen.dart';
 import 'cross_reference_tool_screen.dart';
 import 'highlights_screen.dart';
 import 'audio_bible_screen.dart';
+
+import 'reading_plans/reading_plans_screen.dart';
 
 class BibleToolsScreen extends StatelessWidget {
   const BibleToolsScreen({super.key});
@@ -64,21 +67,24 @@ class BibleToolsScreen extends StatelessWidget {
           ),
           _buildToolCard(
             context,
-            icon: Icons.search,
-            title: 'Search',
+            icon: Icons.local_library, // Changed from search to library icon
+            title: 'Encyclopedias',
             color: Colors.teal.shade100,
             iconColor: Colors.teal,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const BibleScreen(), // Go to BibleScreen which handles search for now
-                ),
-              );
+            onTap: () async {
+              final Uri url =
+                  Uri.parse('https://www.biblestudytools.com/encyclopedias/');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              } else {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Could not launch Encyclopedias')),
+                  );
+                }
+              }
             },
-            // Note: BibleScreen has the search icon. Ideally search should be its own screen or accessible here.
-            // For now, let's keep it simple.
           ),
           _buildToolCard(
             context,
@@ -114,7 +120,13 @@ class BibleToolsScreen extends StatelessWidget {
             title: 'Reading Plans',
             color: Colors.green.shade100,
             iconColor: Colors.green,
-            onTap: () => _showComingSoonDialog(context, 'Reading Plans'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const ReadingPlansScreen()),
+              );
+            },
           ),
           _buildToolCard(
             context,
