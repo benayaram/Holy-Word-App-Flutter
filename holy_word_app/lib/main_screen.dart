@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:holy_word_app/l10n/app_localizations.dart';
 import '../features/devotional/presentation/devotional_screen.dart';
 import '../features/bible/presentation/bible_tools_screen.dart';
+import '../features/community/presentation/community_screen.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
@@ -19,7 +20,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     const BibleToolsScreen(),
     const Center(child: Text('Worship & Music')), // Placeholder
     const Center(child: Text('Sermons')), // Placeholder
-    const Center(child: Text('Community')), // Placeholder
+    const CommunityScreen(),
   ];
 
   @override
