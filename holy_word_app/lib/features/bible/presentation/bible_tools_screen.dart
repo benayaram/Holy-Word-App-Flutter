@@ -136,9 +136,69 @@ class BibleToolsScreen extends StatelessWidget {
             iconColor: Colors.pink,
             onTap: () => _showComingSoonDialog(context, 'Kids Stories'),
           ),
+          _buildToolCard(
+            context,
+            icon: Icons.menu_book_outlined,
+            title: 'Bible Dictionary',
+            color: Colors.indigo.shade100,
+            iconColor: Colors.indigo,
+            onTap: () => _showDictionaryDialog(context),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _showDictionaryDialog(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Language'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
+              title: const Text('English Dictionary'),
+              onTap: () {
+                Navigator.pop(context);
+                _launchUrl(
+                    context, 'https://www.biblestudytools.com/dictionaries/');
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Text('🇮🇳', style: TextStyle(fontSize: 24)),
+              title: const Text('Telugu Dictionary'),
+              onTap: () {
+                Navigator.pop(context);
+                _launchUrl(context,
+                    'https://sajeevavahini.com/telugu-bible-dictionary');
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _launchUrl(BuildContext context, String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not launch dictionary')),
+        );
+      }
+    }
   }
 
   void _showComingSoonDialog(BuildContext context, String feature) {

@@ -43,9 +43,8 @@ class _AudioPlayerWidgetState extends ConsumerState<AudioPlayerWidget> {
   }
 
   void _playAudio() {
-    ref
-        .read(audioBibleServiceProvider)
-        .playChapter(widget.bookId, widget.chapter, widget.isTelugu);
+    ref.read(audioBibleServiceProvider).playChapter(
+        widget.bookId, widget.chapter, widget.isTelugu, widget.bookName);
   }
 
   String _formatDuration(Duration? duration) {

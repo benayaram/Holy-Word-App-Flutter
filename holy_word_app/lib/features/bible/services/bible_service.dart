@@ -232,14 +232,20 @@ class BibleService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getVerses(int bookId, int chapter) async {
-    if (_isTelugu) {
+  Future<List<Map<String, dynamic>>> getVerses(int bookId, int chapter,
+      {String? language}) async {
+    final isTelugu = language != null ? language == 'telugu' : _isTelugu;
+    final dbName = language != null
+        ? (language == 'telugu' ? 'bsi_te.db' : 'KJV.db')
+        : _dbName;
+
+    if (isTelugu) {
       // ID calculation for specific chapter
       final startId = bookId * 1000000 + chapter * 1000;
       final endId = startId + 1000; // Max 999 verses
 
       final res = await _dbService.rawQuery(
-          _dbName,
+          dbName,
           'SELECT id, t FROM verse WHERE id >= ? AND id < ? ORDER BY id',
           [startId, endId]);
 
@@ -255,7 +261,7 @@ class BibleService {
     } else {
       // English: KJV_verses table
       final result = await _dbService.query(
-        _dbName,
+        dbName,
         'KJV_verses',
         where: 'book_id = ? AND chapter = ?',
         whereArgs: [bookId, chapter],
@@ -382,7 +388,8 @@ class BibleService {
   }
 
   Future<List<Map<String, dynamic>>> getCrossReferences(
-      int bookId, int chapter, int verse) async {
+      int bookId, int chapter, int verse,
+      {String? targetLanguage}) async {
     if (bookId < 1 || bookId > _teluguBooks.length) return [];
     final teluguBookName = _teluguBooks[bookId - 1];
 
@@ -393,6 +400,10 @@ class BibleService {
 
     // Enhance refs with text and BookID
     final List<Map<String, dynamic>> enhancedRefs = [];
+
+    // Determine target language state (override or default)
+    final isTeluguMode =
+        targetLanguage != null ? targetLanguage == 'telugu' : _isTelugu;
 
     for (var r in refs) {
       final refBookName = r['reference_book'] as String;
@@ -435,8 +446,9 @@ class BibleService {
       // If we found a Book ID and Text is missing, fetch it
       if (refBookId != null && (refText == null || refText.isEmpty)) {
         try {
-          // Fetch using CURRENT app language (to match user preference)
-          final rawVerses = await getVerses(refBookId, refChapter);
+          // Fetch using TARGET app language (to match user preference)
+          final rawVerses =
+              await getVerses(refBookId, refChapter, language: targetLanguage);
           final verses = List<Map<String, dynamic>>.from(rawVerses);
 
           final matchedVerse = verses.firstWhere((v) {
@@ -458,7 +470,7 @@ class BibleService {
       // Localize Book Name for Display
       String displayBookName = refBookName;
       if (refBookId != null) {
-        if (_isTelugu) {
+        if (isTeluguMode) {
           if (refBookId > 0 && refBookId <= _teluguBooks.length) {
             displayBookName = _teluguBooks[refBookId - 1];
           }
