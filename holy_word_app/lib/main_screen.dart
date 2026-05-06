@@ -4,6 +4,7 @@ import 'package:holy_word_app/l10n/app_localizations.dart';
 import '../features/devotional/presentation/devotional_screen.dart';
 import '../features/bible/presentation/bible_tools_screen.dart';
 import '../features/community/presentation/community_screen.dart';
+import '../features/arena/presentation/arena_home_screen.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
@@ -19,7 +20,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     const DevotionalScreen(),
     const BibleToolsScreen(),
     const Center(child: Text('Worship & Music')), // Placeholder
-    const Center(child: Text('Sermons')), // Placeholder
+    const ArenaHomeScreen(), // Bible Arena - Game Zone
     const CommunityScreen(),
   ];
 
@@ -71,10 +72,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               label: 'Worship',
             ),
             NavigationDestination(
-              icon: const Icon(Icons.mic_none_outlined),
-              selectedIcon: Icon(Icons.mic_rounded,
+              icon: const Icon(Icons.sports_esports_outlined),
+              selectedIcon: Icon(Icons.sports_esports_rounded,
                   color: Theme.of(context).colorScheme.primary),
-              label: 'Sermons',
+              label: 'Arena',
             ),
             NavigationDestination(
               icon: const Icon(Icons.people_outline_rounded),

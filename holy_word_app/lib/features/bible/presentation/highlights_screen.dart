@@ -300,7 +300,7 @@ class _HighlightsScreenState extends ConsumerState<HighlightsScreen> {
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     h['text'],
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       height: 1.5,
                       fontFamily: 'Roboto', // Default

@@ -48,13 +48,13 @@ class _DevotionalScreenState extends ConsumerState<DevotionalScreen> {
 
     try {
       final response = await http
-          .get(Uri.parse('https://holyword.vercel.app/api/daily-verse'));
+          .get(Uri.parse('https://holycanvasapi.vercel.app/api/random'));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (mounted) {
           setState(() {
-            _dailyVerseData = data;
+            _dailyVerseData = data['verse'] ?? data;
             _isLoading = false;
           });
         }
@@ -276,7 +276,7 @@ class _DevotionalScreenState extends ConsumerState<DevotionalScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: !isTelugu
                                 ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.surfaceVariant,
+                                : Theme.of(context).colorScheme.surfaceContainerHighest,
                             foregroundColor: !isTelugu
                                 ? Theme.of(context).colorScheme.onPrimary
                                 : Theme.of(context)
@@ -297,7 +297,7 @@ class _DevotionalScreenState extends ConsumerState<DevotionalScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: isTelugu
                                 ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.surfaceVariant,
+                                : Theme.of(context).colorScheme.surfaceContainerHighest,
                             foregroundColor: isTelugu
                                 ? Theme.of(context).colorScheme.onPrimary
                                 : Theme.of(context)

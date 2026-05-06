@@ -141,8 +141,8 @@ class _NotesScreenState extends State<NotesScreen> {
             ),
           );
         },
-        child: const Icon(Icons.add),
         backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add),
       ),
     );
   }

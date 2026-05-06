@@ -128,14 +128,7 @@ class BibleToolsScreen extends StatelessWidget {
               );
             },
           ),
-          _buildToolCard(
-            context,
-            icon: Icons.child_care,
-            title: 'Kids Stories',
-            color: Colors.pink.shade100,
-            iconColor: Colors.pink,
-            onTap: () => _showComingSoonDialog(context, 'Kids Stories'),
-          ),
+
           _buildToolCard(
             context,
             icon: Icons.menu_book_outlined,
@@ -201,21 +194,7 @@ class BibleToolsScreen extends StatelessWidget {
     }
   }
 
-  void _showComingSoonDialog(BuildContext context, String feature) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('$feature Coming Soon'),
-        content: const Text('This feature is currently under development.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildToolCard(
     BuildContext context, {

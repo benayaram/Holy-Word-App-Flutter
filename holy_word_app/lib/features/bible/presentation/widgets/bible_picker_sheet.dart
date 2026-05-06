@@ -304,7 +304,7 @@ class _BiblePickerSheetState extends ConsumerState<BiblePickerSheet>
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(context)
                       .colorScheme
-                      .surfaceVariant
+                      .surfaceContainerHighest
                       .withOpacity(0.5),
               borderRadius: BorderRadius.circular(12),
               border: isSelected

@@ -35,4 +35,22 @@ class AppConstants {
   // Bible Theme
   static const Color bibleGold = Color(0xFFD4AF37);
   static const Color bibleMaroon = Color(0xFF800020);
+
+  // Bible Arena Colors
+  static const Color arenaRed = Color(0xFFe94560);
+  static const Color arenaOrange = Color(0xFFf97316);
+  static const Color arenaPurple = Color(0xFF764ba2);
+  static const Color arenaBlue = Color(0xFF4facfe);
+  static const Color arenaDark = Color(0xFF1a1a2e);
+  static const Color arenaDarkSecondary = Color(0xFF16213e);
+
+  // Arena API (override via --dart-define for production)
+  static const String arenaApiUrl = String.fromEnvironment(
+    'ARENA_API_URL',
+    defaultValue: 'http://10.0.2.2:3000/api',
+  );
+  static const String arenaWsUrl = String.fromEnvironment(
+    'ARENA_WS_URL',
+    defaultValue: 'ws://10.0.2.2:3000/ws',
+  );
 }

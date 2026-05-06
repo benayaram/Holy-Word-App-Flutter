@@ -63,8 +63,9 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
   void initState() {
     super.initState();
     if (widget.initialBookId != null) _selectedBookId = widget.initialBookId!;
-    if (widget.initialChapter != null)
+    if (widget.initialChapter != null) {
       _selectedChapter = widget.initialChapter!;
+    }
     if (widget.initialVerse != null) {
       _targetScrollVerse = widget.initialVerse;
       _selectedVerse = widget.initialVerse!;

@@ -28,7 +28,7 @@ void main() async {
     }
 
     // Expecting 'cross_references' table
-    final tableName = 'cross_references';
+    const tableName = 'cross_references';
     print('\n--- Schema of $tableName ---');
     final columns = await db.rawQuery("PRAGMA table_info($tableName)");
     for (var c in columns) {

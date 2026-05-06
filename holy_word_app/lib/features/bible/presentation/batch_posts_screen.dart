@@ -436,7 +436,7 @@ class _BatchPostsScreenState extends ConsumerState<BatchPostsScreen> {
     }
 
     // Refresh Handler
-    final onRefresh = () => _refreshVerse(index);
+    Future<void> onRefresh() => _refreshVerse(index);
 
     final style = post['style'];
     final type = style['type'];
@@ -561,10 +561,10 @@ class _BatchPostsScreenState extends ConsumerState<BatchPostsScreen> {
             ),
 
             // Edit Indicator overlay
-            Positioned(
+            const Positioned(
               top: 8,
               right: 8,
-              child: const Icon(Icons.edit, color: Colors.white70, size: 16),
+              child: Icon(Icons.edit, color: Colors.white70, size: 16),
             ),
             // Refresh Button Overlay
             Positioned(
@@ -675,9 +675,10 @@ class _BatchPostsScreenState extends ConsumerState<BatchPostsScreen> {
           text: 'Here are your verse images!');
     } catch (e) {
       debugPrint('Export Error: $e');
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Export failed: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }
@@ -714,9 +715,10 @@ class _BatchPostsScreenState extends ConsumerState<BatchPostsScreen> {
       }
     } catch (e) {
       debugPrint('Share Error: $e');
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Share failed: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }
@@ -759,9 +761,10 @@ class _BatchPostsScreenState extends ConsumerState<BatchPostsScreen> {
           text: 'Here are your verse images in PDF!');
     } catch (e) {
       debugPrint('PDF Export Error: $e');
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('PDF Export failed: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }

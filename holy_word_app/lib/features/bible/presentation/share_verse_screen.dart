@@ -1,16 +1,15 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/widgets.dart'; // For FontFeature
+// For FontFeature
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:holy_word_app/features/bible/services/bible_service.dart';
 import 'package:holy_word_app/features/bible/domain/models/verse_layout.dart';
@@ -115,7 +114,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
 
     if (widget.bookId == null ||
         widget.chapter == null ||
-        widget.verseNumbers == null) return;
+        widget.verseNumbers == null) {
+      return;
+    }
 
     final bibleService = ref.read(bibleServiceProvider);
     final result = await bibleService.getParallelVerses(
@@ -170,7 +171,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   String _secEffect = 'None';
   double _secEffectVal = 0.5;
   Color _secEffectColor = Colors.red;
-  Alignment _secAlignment = const Alignment(0.0, 0.2);
+  final Alignment _secAlignment = const Alignment(0.0, 0.2);
 
   // Secondary Reference State
   String _secondaryReference = '';
@@ -180,7 +181,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
   String _secRefFont = 'Mandali';
   double _secRefSize = 14.0;
   Color _secRefColor = Colors.white70;
-  TextAlign _secRefAlign = TextAlign.center;
+  final TextAlign _secRefAlign = TextAlign.center;
   bool _secRefBold = false;
   bool _secRefItalic = false;
   bool _secRefUnderlined = false;
@@ -1563,8 +1564,8 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                                                 color: Colors.white
                                                     .withOpacity(0.8),
                                                 fontWeight: FontWeight.bold,
-                                                shadows: [
-                                                  const Shadow(
+                                                shadows: const [
+                                                  Shadow(
                                                       color: Colors.black,
                                                       blurRadius: 4)
                                                 ]),
@@ -1913,7 +1914,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
               const SizedBox(height: 8),
               Switch(
                 value: _showDual,
-                activeColor: Colors.orange,
+                activeThumbColor: Colors.orange,
                 onChanged: (val) {
                   setState(() {
                     _showDual = val;
@@ -2011,7 +2012,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                         color: Colors.white, fontWeight: FontWeight.bold)),
                 Switch(
                   value: _showDual,
-                  activeColor: Colors.orange,
+                  activeThumbColor: Colors.orange,
                   onChanged: (val) => setState(() => _showDual = val),
                 ),
               ],
@@ -2125,9 +2126,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                         max: 1.0,
                         activeColor: Colors.orangeAccent,
                         onChanged: (v) => setState(() {
-                          if (isVerse)
+                          if (isVerse) {
                             _verseEffectVal = v;
-                          else if (isDual)
+                          } else if (isDual)
                             _secEffectVal = v;
                           else if (isDualRef)
                             _secRefEffectVal = v;
@@ -2160,7 +2161,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                         style: TextStyle(color: Colors.grey, fontSize: 12)),
                     Switch(
                       value: _isVerseDynamic,
-                      activeColor: Colors.orange,
+                      activeThumbColor: Colors.orange,
                       onChanged: (val) => setState(() => _isVerseDynamic = val),
                     ),
                   ],
@@ -2181,9 +2182,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                     activeColor: Colors.orange,
                     onChanged: (val) {
                       setState(() {
-                        if (isVerse)
+                        if (isVerse) {
                           _verseTextSize = val;
-                        else if (isDual)
+                        } else if (isDual)
                           _secTextSize = val;
                         else if (isDualRef)
                           _secRefSize = val;
@@ -2205,9 +2206,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                   Icons.format_bold,
                   isBold,
                   (v) => setState(() {
-                        if (isVerse)
+                        if (isVerse) {
                           _isBold = v;
-                        else if (isDual)
+                        } else if (isDual)
                           _secBold = v;
                         else if (isDualRef)
                           _secRefBold = v;
@@ -2218,9 +2219,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                   Icons.format_italic,
                   isItalic,
                   (v) => setState(() {
-                        if (isVerse)
+                        if (isVerse) {
                           _isItalic = v;
-                        else if (isDual)
+                        } else if (isDual)
                           _secItalic = v;
                         else if (isDualRef)
                           _secRefItalic = v;
@@ -2232,9 +2233,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                     Icons.format_underlined,
                     isUnderlined,
                     (v) => setState(() {
-                          if (isVerse)
+                          if (isVerse) {
                             _isUnderlined = v;
-                          else if (isDual)
+                          } else if (isDual)
                             _secUnderlined = v;
                           else if (isDualRef) _secRefUnderlined = v;
                         })),
@@ -2276,9 +2277,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
               min: 0.8,
               max: 2.5,
               onChanged: (v) => setState(() {
-                    if (isVerse)
+                    if (isVerse) {
                       _verseLineHeight = v;
-                    else if (isDual)
+                    } else if (isDual)
                       _secLineHeight = v;
                     else if (isDualRef)
                       _secRefLineHeight = v;
@@ -2352,9 +2353,9 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
               min: 0.1,
               max: 1.0,
               onChanged: (v) => setState(() {
-                    if (isVerse)
+                    if (isVerse) {
                       _verseOpacity = v;
-                    else if (isDual)
+                    } else if (isDual)
                       _secOpacity = v;
                     else if (isDualRef)
                       _secRefOpacity = v;
@@ -2398,7 +2399,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.grey[900],
-      builder: (_) => Container(
+      builder: (_) => SizedBox(
         height: 300,
         child: ListView.builder(
           itemCount: _fonts.keys.length,
@@ -2848,7 +2849,7 @@ class _ShareVerseScreenState extends ConsumerState<ShareVerseScreen> {
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
                       IconButton(
                         icon: const Icon(Icons.add_circle, color: Colors.green),
                         onPressed: () {

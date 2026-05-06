@@ -176,9 +176,9 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
       final rawData2 = plan['data2'] as List<dynamic>?;
 
       int total = 0;
-      if (rawData2 != null)
+      if (rawData2 != null) {
         total = rawData2.length;
-      else if (rawData != null) total = rawData.length;
+      } else if (rawData != null) total = rawData.length;
 
       // Load Progress (DB)
       final progressList = await _planService.getPlanProgress(widget.planId);

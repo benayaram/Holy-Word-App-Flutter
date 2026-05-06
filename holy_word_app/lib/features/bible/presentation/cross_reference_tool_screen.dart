@@ -126,7 +126,7 @@ class _CrossReferenceToolScreenState
         title: const Text('Cross References'),
         actions: [
           IconButton(
-            icon: Icon(Icons.g_translate),
+            icon: const Icon(Icons.g_translate),
             tooltip: 'Translate References',
             onPressed: _toggleLanguage,
           ),

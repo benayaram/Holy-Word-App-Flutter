@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../core/app_theme.dart';
 import '../../../main_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {

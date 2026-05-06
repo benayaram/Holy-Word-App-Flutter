@@ -321,7 +321,7 @@ class _ImageGeneratorDashboardState
                         children: [
                           Expanded(
                             child: DropdownButtonFormField<String>(
-                              value: _batchVerseFont,
+                              initialValue: _batchVerseFont,
                               decoration: InputDecoration(
                                   labelText: _batchLanguage == 'English'
                                       ? 'Verse (Eng)'
@@ -344,7 +344,7 @@ class _ImageGeneratorDashboardState
                           const SizedBox(width: 8),
                           Expanded(
                             child: DropdownButtonFormField<String>(
-                              value: _batchReferenceFont,
+                              initialValue: _batchReferenceFont,
                               decoration: InputDecoration(
                                   labelText: _batchLanguage == 'English'
                                       ? 'Ref (Eng)'
@@ -374,7 +374,7 @@ class _ImageGeneratorDashboardState
                           children: [
                             Expanded(
                               child: DropdownButtonFormField<String>(
-                                value: _batchSecondaryFont,
+                                initialValue: _batchSecondaryFont,
                                 decoration: const InputDecoration(
                                     labelText: 'Verse 2 (Eng)',
                                     contentPadding: EdgeInsets.symmetric(
@@ -393,7 +393,7 @@ class _ImageGeneratorDashboardState
                             const SizedBox(width: 8),
                             Expanded(
                               child: DropdownButtonFormField<String>(
-                                value: _batchSecondaryRefFont,
+                                initialValue: _batchSecondaryRefFont,
                                 decoration: const InputDecoration(
                                     labelText: 'Ref 2 (Eng)',
                                     contentPadding: EdgeInsets.symmetric(
@@ -432,7 +432,7 @@ class _ImageGeneratorDashboardState
                         children: [
                           Expanded(
                             child: DropdownButtonFormField<int>(
-                              value: _batchOrientation,
+                              initialValue: _batchOrientation,
                               decoration: const InputDecoration(
                                   labelText: 'Orientation',
                                   contentPadding: EdgeInsets.symmetric(
@@ -455,7 +455,7 @@ class _ImageGeneratorDashboardState
                       const SizedBox(height: 12),
                       // Background Selector
                       DropdownButtonFormField<String>(
-                        value: _bgType,
+                        initialValue: _bgType,
                         decoration: const InputDecoration(
                             labelText: 'Background Style',
                             contentPadding: EdgeInsets.symmetric(
@@ -600,7 +600,7 @@ class _ImageGeneratorDashboardState
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           decoration: InputDecoration(
             labelText: label,
             border: const OutlineInputBorder(),

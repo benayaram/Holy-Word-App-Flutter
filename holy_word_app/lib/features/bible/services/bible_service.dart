@@ -434,8 +434,9 @@ class BibleService {
         } else {
           // 3. Try standard variations
           if (cleanRefBook.toLowerCase() == 'psalm') cleanRefBook = 'Psalms';
-          if (cleanRefBook.toLowerCase() == 'song of songs')
+          if (cleanRefBook.toLowerCase() == 'song of songs') {
             cleanRefBook = 'Song of Solomon';
+          }
 
           final retryIndex = _englishBooks
               .indexWhere((b) => b.toLowerCase() == cleanRefBook.toLowerCase());
