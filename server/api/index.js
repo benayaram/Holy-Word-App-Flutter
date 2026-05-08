@@ -61,6 +61,36 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// === Landing Page ===
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Holy Word Arena Server</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f7f6; color: #333; }
+        .container { text-align: center; padding: 3rem; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); max-width: 500px; }
+        h1 { color: #2c3e50; margin-bottom: 1rem; font-size: 2rem; }
+        p { color: #7f8c8d; line-height: 1.6; font-size: 1.1rem; }
+        .status { margin-top: 2rem; display: inline-block; padding: 0.6rem 1.2rem; background: #e8f8f5; color: #1abc9c; border-radius: 30px; font-weight: bold; font-size: 0.95rem; }
+        .pulse { display: inline-block; width: 8px; height: 8px; background-color: #1abc9c; border-radius: 50%; margin-right: 8px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(26, 188, 156, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(26, 188, 156, 0); } 100% { box-shadow: 0 0 0 0 rgba(26, 188, 156, 0); } }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>Holy Word Arena API</h1>
+        <p>The backend server is up and running successfully. Ready to power the Holy Word Arena application.</p>
+        <div class="status"><span class="pulse"></span>Server Online</div>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
 // === API Routes ===
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
