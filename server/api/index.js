@@ -69,13 +69,18 @@ const aiLimiter = rateLimit({
 app.use('/api/questions/generate', aiLimiter);
 
 // DB readiness middleware — returns 503 if DB is not yet connected
-app.use('/api/', (req, res, next) => {
+app.use('/api/', async (req, res, next) => {
   // Allow health check even without DB
   if (req.path === '/health') return next();
   try {
-    getDB();
+    try {
+      getDB();
+    } catch {
+      await connectDB();
+    }
     next();
-  } catch {
+  } catch (err) {
+    console.error('Database connection failed on request:', err.message);
     res.status(503).json({ error: 'Service temporarily unavailable — database starting up' });
   }
 });
