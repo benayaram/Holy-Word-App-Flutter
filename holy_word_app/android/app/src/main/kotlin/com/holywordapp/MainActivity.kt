@@ -1,4 +1,4 @@
-package com.example.holy_word_app
+package com.holywordapp
 
 import io.flutter.embedding.android.FlutterActivity
 
