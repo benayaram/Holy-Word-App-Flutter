@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/language_provider.dart';
 import '../../providers/arena_providers.dart';
 import '../arena_theme.dart';
+import '../../services/arena_share_service.dart';
 
 class QuizPlayScreen extends ConsumerStatefulWidget {
   final String? category;
@@ -438,6 +439,48 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.04),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.share_rounded, color: ArenaTheme.primary, size: 28),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Share Achievement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                            const SizedBox(height: 4),
+                            Text('Generate a premium achievement card to share with friends!', style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          ArenaShareService().shareQuizCard(
+                            context: context,
+                            score: result.score,
+                            total: result.total,
+                            category: widget.category ?? 'General Bible',
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ArenaTheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Share', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

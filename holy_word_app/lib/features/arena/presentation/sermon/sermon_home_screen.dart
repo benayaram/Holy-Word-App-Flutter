@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/arena_providers.dart';
 import '../arena_theme.dart';
 import 'sermon_quiz_screen.dart';
+import 'sermon_composer_screen.dart';
 
 class SermonHomeScreen extends ConsumerWidget {
   const SermonHomeScreen({super.key});
@@ -21,7 +22,11 @@ class SermonHomeScreen extends ConsumerWidget {
           if (user?.isPastor == true)
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
-              onPressed: () => _showCreateDialog(context, ref),
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => const SermonComposerScreen(),
+                ));
+              },
             ),
         ],
       ),

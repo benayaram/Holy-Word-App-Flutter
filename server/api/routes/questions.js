@@ -17,9 +17,28 @@ router.get('/', authMiddleware, async (req, res) => {
     if (difficulty) query.difficulty = difficulty;
     if (type) query.type = type;
 
-    const questions = await db.collection('questions')
+    let questions = await db.collection('questions')
       .aggregate([{ $match: query }, { $sample: { size: parseInt(limit) } }])
       .toArray();
+
+    // Fallback logic for battle questions
+    if (questions.length === 0) {
+      console.log(`⚠️ No battle questions matched query: ${JSON.stringify(query)}. Attempting fallbacks...`);
+      
+      const fallbackQuery1 = {};
+      if (category) fallbackQuery1.category = category;
+      if (type) fallbackQuery1.type = type;
+      
+      questions = await db.collection('questions')
+        .aggregate([{ $match: fallbackQuery1 }, { $sample: { size: parseInt(limit) } }])
+        .toArray();
+        
+      if (questions.length === 0) {
+        questions = await db.collection('questions')
+          .aggregate([{ $sample: { size: parseInt(limit) } }])
+          .toArray();
+      }
+    }
 
     return res.json({
       questions: questions.map(q => ({

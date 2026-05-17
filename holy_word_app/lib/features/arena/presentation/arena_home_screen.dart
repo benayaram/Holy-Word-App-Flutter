@@ -11,6 +11,7 @@ import 'battle/battle_home_screen.dart';
 import 'sermon/sermon_home_screen.dart';
 import 'common/leaderboard_screen.dart';
 import 'common/profile_screen.dart';
+import 'common/arena_help_screen.dart';
 import '../../../../core/services/notification_service.dart';
 
 class ArenaHomeScreen extends ConsumerStatefulWidget {
@@ -39,6 +40,17 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
 
   Future<void> _initPushNotifications() async {
     final api = ref.read(arenaApiClientProvider);
+    
+    // Tap callback redirect to SermonHomeScreen
+    NotificationService().onNotificationTap = (data) {
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SermonHomeScreen()),
+        );
+      }
+    };
+
     await NotificationService().setupFCM(
       onTokenRefresh: (token) async {
         try {
@@ -439,6 +451,22 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
                       ),
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ArenaHelpScreen()),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: ArenaTheme.primary.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: ArenaTheme.primary.withOpacity(0.3)),
+                  ),
+                  child: const Icon(Icons.help_outline_rounded, color: ArenaTheme.primary, size: 20),
                 ),
               ),
             ],

@@ -177,10 +177,42 @@ class ArenaApiClient {
     required List<String> keyPoints,
     required String churchId,
     String language = 'en',
+    List<Map<String, dynamic>>? questions,
   }) async {
     return await _post('/sermons/create', {
-      'title': title, 'keyPoints': keyPoints,
-      'churchId': churchId, 'language': language,
+      'title': title,
+      'keyPoints': keyPoints,
+      'churchId': churchId,
+      'language': language,
+      if (questions != null) 'questions': questions,
+    });
+  }
+
+  // ========== CHURCHES ==========
+
+  Future<List<String>> getChurchesList() async {
+    final res = await _get('/churches');
+    return (res['churches'] as List).map((e) => e as String).toList();
+  }
+
+  Future<Map<String, dynamic>> getChurchProfile(String name) async {
+    final res = await _get('/churches/profile/${Uri.encodeComponent(name)}');
+    return res['profile'] as Map<String, dynamic>;
+  }
+
+  Future<void> saveChurchProfile({
+    required String name,
+    required String location,
+    required String description,
+    String? imageUrl,
+    String? contact,
+  }) async {
+    await _post('/churches/profile', {
+      'name': name,
+      'location': location,
+      'description': description,
+      if (imageUrl != null) 'imageUrl': imageUrl,
+      if (contact != null) 'contact': contact,
     });
   }
 

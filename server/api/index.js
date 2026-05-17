@@ -37,6 +37,7 @@ const battleRoutes = require('./routes/battles');
 const tournamentRoutes = require('./routes/tournaments');
 const sermonRoutes = require('./routes/sermons');
 const memoryRoutes = require('./routes/memory');
+const churchRoutes = require('./routes/churches');
 
 const app = express();
 
@@ -137,6 +138,7 @@ app.use('/api/battles', battleRoutes);
 app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/sermons', sermonRoutes);
 app.use('/api/memory', memoryRoutes);
+app.use('/api/churches', churchRoutes);
 
 // === 404 Handler ===
 app.use('/api/*', (req, res) => {

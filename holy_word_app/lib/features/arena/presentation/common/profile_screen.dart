@@ -224,6 +224,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ],
           ),
+          if (user.isPastor) ...[
+            const Divider(color: Colors.white12, height: 32),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: ArenaTheme.xpGold.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.church_rounded, color: ArenaTheme.xpGold, size: 22),
+              ),
+              title: const Text(
+                'Church Profile Editor',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              subtitle: const Text(
+                'Update location, description and cover photo',
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white38, size: 16),
+              onTap: () => _showChurchProfileEditor(context, user.churchIds),
+            ),
+          ],
           const Divider(color: Colors.white12, height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -256,11 +280,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               spacing: 8,
               runSpacing: 8,
               children: user.churchIds.map((church) {
-                return Chip(
+                return ActionChip(
                   backgroundColor: ArenaTheme.success.withOpacity(0.1),
                   label: Text(church, style: const TextStyle(color: Colors.white, fontSize: 11)),
                   side: BorderSide(color: ArenaTheme.success.withOpacity(0.3)),
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  onPressed: () => _showChurchProfileDialog(context, church),
                 );
               }).toList(),
             ),
@@ -270,16 +295,45 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _showAddChurchDialog(BuildContext context, List<String> currentChurches) {
-    final textController = TextEditingController();
+    final searchController = TextEditingController();
     List<String> tempChurches = List.from(currentChurches);
     bool isSearchingNear = false;
     List<ChurchLocation> nearbyChurches = [];
+    List<String> availableChurches = [];
+    List<String> filteredChurches = [];
+    bool isLoadingAvailable = true;
 
     showDialog(
       context: context,
       builder: (ctx) {
+        final api = ref.read(arenaApiClientProvider);
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            // Load available registered churches on first open
+            if (isLoadingAvailable) {
+              api.getChurchesList().then((list) {
+                setDialogState(() {
+                  availableChurches = list;
+                  filteredChurches = list.where((c) => !tempChurches.contains(c)).toList();
+                  isLoadingAvailable = false;
+                });
+              }).catchError((err) {
+                setDialogState(() {
+                  isLoadingAvailable = false;
+                });
+              });
+            }
+
+            void filterSearch(String query) {
+              setDialogState(() {
+                filteredChurches = availableChurches
+                    .where((c) =>
+                        c.toLowerCase().contains(query.toLowerCase()) &&
+                        !tempChurches.contains(c))
+                    .toList();
+              });
+            }
+
             return AlertDialog(
               backgroundColor: ArenaTheme.surface,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -296,7 +350,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         style: TextStyle(color: Colors.white70, fontSize: 13),
                       ),
                       const SizedBox(height: 16),
-                      // Currently selected
+                      
+                      // Active Selection
                       if (tempChurches.isNotEmpty) ...[
                         const Text('Active Selection:', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -310,6 +365,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               onDeleted: () {
                                 setDialogState(() {
                                   tempChurches.remove(church);
+                                  filterSearch(searchController.text);
                                 });
                               },
                               deleteIconColor: Colors.redAccent,
@@ -318,45 +374,103 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                         const Divider(color: Colors.white24, height: 24),
                       ],
-                      // Manual Add
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: textController,
-                              style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
-                                hintText: 'Enter custom church name...',
-                                hintStyle: const TextStyle(color: Colors.white30),
-                                filled: true,
-                                fillColor: Colors.white.withOpacity(0.05),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              ),
-                            ),
+
+                      // Search Dropdown List Input
+                      const Text('Search Registered Churches:', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: searchController,
+                        style: const TextStyle(color: Colors.white),
+                        onChanged: filterSearch,
+                        decoration: InputDecoration(
+                          hintText: 'Type to search...',
+                          hintStyle: const TextStyle(color: Colors.white30),
+                          prefixIcon: const Icon(Icons.search, color: Colors.white54),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.05),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
                           ),
-                          const SizedBox(width: 8),
-                          IconButton.filled(
-                            style: IconButton.styleFrom(backgroundColor: ArenaTheme.primary),
-                            onPressed: () {
-                              if (textController.text.trim().isNotEmpty) {
-                                setDialogState(() {
-                                  final name = textController.text.trim();
-                                  if (!tempChurches.contains(name)) {
-                                    tempChurches.add(name);
-                                  }
-                                  textController.clear();
-                                });
-                              }
-                            },
-                            icon: const Icon(Icons.add, color: Colors.white),
-                          ),
-                        ],
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
                       ),
+                      const SizedBox(height: 8),
+
+                      if (isLoadingAvailable)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: CircularProgressIndicator(color: ArenaTheme.primary, strokeWidth: 2),
+                          ),
+                        )
+                      else ...[
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 150),
+                          decoration: BoxDecoration(
+                            color: Colors.black26,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: filteredChurches.isEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        'No matching registered churches found.',
+                                        style: TextStyle(color: Colors.white38, fontSize: 12),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      if (searchController.text.trim().isNotEmpty) ...[
+                                        const SizedBox(height: 8),
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            final name = searchController.text.trim();
+                                            setDialogState(() {
+                                              if (!tempChurches.contains(name)) {
+                                                tempChurches.add(name);
+                                              }
+                                              searchController.clear();
+                                              filterSearch('');
+                                            });
+                                          },
+                                          icon: const Icon(Icons.add, size: 14),
+                                          label: Text('Register "${searchController.text.trim()}"', style: const TextStyle(fontSize: 11)),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: ArenaTheme.primary,
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                )
+                              : ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: filteredChurches.length,
+                                  itemBuilder: (context, idx) {
+                                    final item = filteredChurches[idx];
+                                    return ListTile(
+                                      title: Text(item, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                                      trailing: const Icon(Icons.add, color: ArenaTheme.success, size: 16),
+                                      dense: true,
+                                      onTap: () {
+                                        setDialogState(() {
+                                          tempChurches.add(item);
+                                          searchController.clear();
+                                          filterSearch('');
+                                        });
+                                      },
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
                       const SizedBox(height: 16),
+
                       // Search Nearby
                       ElevatedButton.icon(
                         onPressed: isSearchingNear
@@ -479,6 +593,342 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     }
                   },
                   child: const Text('Save Selection', style: TextStyle(color: ArenaTheme.primary, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showChurchProfileDialog(BuildContext context, String churchName) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final api = ref.read(arenaApiClientProvider);
+        return AlertDialog(
+          backgroundColor: ArenaTheme.background,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          contentPadding: EdgeInsets.zero,
+          content: FutureBuilder<Map<String, dynamic>>(
+            future: api.getChurchProfile(churchName),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox(
+                  height: 250,
+                  child: Center(child: CircularProgressIndicator(color: ArenaTheme.primary)),
+                );
+              }
+              if (snapshot.hasError) {
+                return SizedBox(
+                  height: 200,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.redAccent)),
+                    ),
+                  ),
+                );
+              }
+
+              final profile = snapshot.data ?? {};
+              final desc = profile['description'] ?? 'A welcoming community focused on faith and worship.';
+              final loc = profile['location'] ?? 'No address provided';
+              final imgUrl = profile['imageUrl'];
+              final pastor = profile['pastorName'] ?? 'Lead Pastor';
+              final contact = profile['contact'] ?? 'No contact info';
+
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      children: [
+                        Container(
+                          height: 140,
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                            gradient: const LinearGradient(
+                              colors: ArenaTheme.sermonGradients,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            image: imgUrl != null && imgUrl.isNotEmpty
+                                ? DecorationImage(image: NetworkImage(imgUrl), fit: BoxFit.cover)
+                                : null,
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.black54,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white),
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            churchName,
+                            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.person, color: ArenaTheme.xpGold, size: 16),
+                              const SizedBox(width: 6),
+                              Text('Pastor: $pastor', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          const Text('ABOUT OUR CHURCH', style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                          const SizedBox(height: 6),
+                          Text(desc, style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4)),
+                          const Divider(color: Colors.white12, height: 24),
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on, color: ArenaTheme.primary, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(loc, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.phone, color: ArenaTheme.accent, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(contact, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _showChurchProfileEditor(BuildContext context, List<String> pastorChurches) {
+    if (pastorChurches.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: ArenaTheme.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('No Associated Churches', style: TextStyle(color: Colors.white)),
+          content: const Text(
+            'You must add at least one church to your active selection first in "My Churches" before you can edit its profile.',
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK', style: TextStyle(color: ArenaTheme.primary)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    String selectedChurch = pastorChurches.first;
+    final locationController = TextEditingController();
+    final descriptionController = TextEditingController();
+    final contactController = TextEditingController();
+    final imageController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final api = ref.read(arenaApiClientProvider);
+        return StatefulBuilder(
+          builder: (context, setEditorState) {
+            return AlertDialog(
+              backgroundColor: ArenaTheme.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text('Church Profile Editor', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: FutureBuilder<Map<String, dynamic>>(
+                  future: api.getChurchProfile(selectedChurch),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox(
+                        height: 200,
+                        child: Center(child: CircularProgressIndicator(color: ArenaTheme.primary)),
+                      );
+                    }
+                    
+                    if (snapshot.hasData) {
+                      final p = snapshot.data!;
+                      if (locationController.text.isEmpty && descriptionController.text.isEmpty) {
+                        locationController.text = p['location'] ?? '';
+                        descriptionController.text = p['description'] ?? '';
+                        contactController.text = p['contact'] ?? '';
+                        imageController.text = p['imageUrl'] ?? '';
+                      }
+                    }
+
+                    return SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'Select which of your churches to customize:',
+                            style: TextStyle(color: Colors.white54, fontSize: 12),
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            value: selectedChurch,
+                            dropdownColor: ArenaTheme.surface,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.05),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            ),
+                            items: pastorChurches.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                            onChanged: (val) {
+                              if (val != null) {
+                                setEditorState(() {
+                                  selectedChurch = val;
+                                  locationController.clear();
+                                  descriptionController.clear();
+                                  contactController.clear();
+                                  imageController.clear();
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          const Text('Location / Address', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: locationController,
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            decoration: InputDecoration(
+                              hintText: 'e.g. 123 Faith Lane, Cityville',
+                              hintStyle: const TextStyle(color: Colors.white30),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.05),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                              contentPadding: const EdgeInsets.all(12),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text('Description', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: descriptionController,
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText: 'Describe your church history, community focus or vision...',
+                              hintStyle: const TextStyle(color: Colors.white30),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.05),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                              contentPadding: const EdgeInsets.all(12),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text('Contact Information', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: contactController,
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            decoration: InputDecoration(
+                              hintText: 'e.g. info@ourchurch.org or +1 (555) 019-2834',
+                              hintStyle: const TextStyle(color: Colors.white30),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.05),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                              contentPadding: const EdgeInsets.all(12),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text('Cover Image URL (Optional)', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: imageController,
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            decoration: InputDecoration(
+                              hintText: 'e.g. https://images.unsplash.com/photo-...',
+                              hintStyle: const TextStyle(color: Colors.white30),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.05),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                              contentPadding: const EdgeInsets.all(12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _isSaving = true;
+                    });
+                    try {
+                      await api.saveChurchProfile(
+                        name: selectedChurch,
+                        location: locationController.text.trim(),
+                        description: descriptionController.text.trim(),
+                        imageUrl: imageController.text.trim().isNotEmpty ? imageController.text.trim() : null,
+                        contact: contactController.text.trim().isNotEmpty ? contactController.text.trim() : null,
+                      );
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Church profile saved successfully!')),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error saving profile: $e')),
+                        );
+                      }
+                    } finally {
+                      if (mounted) {
+                        setState(() {
+                          _isSaving = false;
+                        });
+                      }
+                    }
+                  },
+                  child: const Text('Save Profile', style: TextStyle(color: ArenaTheme.primary, fontWeight: FontWeight.bold)),
                 ),
               ],
             );

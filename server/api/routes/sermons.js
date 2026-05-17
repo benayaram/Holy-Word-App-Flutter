@@ -22,21 +22,25 @@ router.post('/create', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'Only pastors can create sermon quizzes' });
     }
 
-    // Generate quiz questions from key points using Gemini AI
+    // Generate quiz questions from key points using Gemini AI or use custom user questions
     let questions = [];
-    try {
-      questions = await generateSermonQuestions(keyPoints, title, language);
-    } catch (aiErr) {
-      console.error('AI sermon question gen failed, using key points as fallback:', aiErr.message);
-      // Fallback: create simple questions from key points
-      questions = keyPoints.map((point, idx) => ({
-        question: `What was key point #${idx + 1} of the sermon "${title}"?`,
-        questionTe: `"${title}" ప్రసంగంలో #${idx + 1} ముఖ్య అంశం ఏమిటి?`,
-        options: [point, 'Not mentioned', 'Something else', 'None of the above'],
-        optionsTe: [point, 'ప్రస్తావించలేదు', 'మరొకటి', 'పైవేవీ కావు'],
-        correctAnswer: 0,
-        keyPointIndex: idx,
-      }));
+    if (req.body.questions && Array.isArray(req.body.questions) && req.body.questions.length > 0) {
+      questions = req.body.questions;
+    } else {
+      try {
+        questions = await generateSermonQuestions(keyPoints, title, language);
+      } catch (aiErr) {
+        console.error('AI sermon question gen failed, using key points as fallback:', aiErr.message);
+        // Fallback: create simple questions from key points
+        questions = keyPoints.map((point, idx) => ({
+          question: `What was key point #${idx + 1} of the sermon "${title}"?`,
+          questionTe: `"${title}" ప్రసంగంలో #${idx + 1} ముఖ్య అంశం ఏమిటి?`,
+          options: [point, 'Not mentioned', 'Something else', 'None of the above'],
+          optionsTe: [point, 'ప్రస్తావించలేదు', 'మరొకటి', 'పైవేవీ కావు'],
+          correctAnswer: 0,
+          keyPointIndex: idx,
+        }));
+      }
     }
 
     const sermonQuiz = {
@@ -52,6 +56,27 @@ router.post('/create', authMiddleware, async (req, res) => {
     };
 
     const result = await db.collection('sermon_quizzes').insertOne(sermonQuiz);
+
+    // Auto-send notifications to church members
+    try {
+      const pushResult = await sendToChurch(
+        churchId,
+        '📖 New Sermon Notes Available!',
+        `New Sermon Notes posted by Pastor ${user.displayName} for ${churchId}`,
+        { type: 'sermon_quiz', sermonQuizId: result.insertedId.toString() },
+        req.user.uid
+      );
+      if (pushResult && pushResult.success > 0) {
+        sermonQuiz.notificationSentAt = new Date();
+        await db.collection('sermon_quizzes').updateOne(
+          { _id: result.insertedId },
+          { $set: { notificationSentAt: sermonQuiz.notificationSentAt } }
+        );
+      }
+      console.log(`Auto-sent notification to ${pushResult.success} members`);
+    } catch (pushErr) {
+      console.error('Failed to auto-send push notification:', pushErr.message);
+    }
 
     return res.status(201).json({
       sermonQuizId: result.insertedId.toString(),
