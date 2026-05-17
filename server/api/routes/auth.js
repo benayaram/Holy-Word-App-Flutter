@@ -104,6 +104,59 @@ router.put('/church', authMiddleware, async (req, res) => {
   }
 });
 
+// PUT /api/auth/pastor-toggle - Toggle pastor mode
+router.put('/pastor-toggle', authMiddleware, async (req, res) => {
+  try {
+    const db = getDB();
+    const { isPastor } = req.body;
+
+    if (typeof isPastor !== 'boolean') {
+      return res.status(400).json({ error: 'isPastor boolean is required' });
+    }
+
+    await db.collection('users').updateOne(
+      { firebaseUid: req.user.uid },
+      { $set: { isPastor, updatedAt: new Date() } }
+    );
+
+    return res.json({ success: true, isPastor });
+  } catch (err) {
+    console.error('Pastor toggle error:', err);
+    return res.status(500).json({ error: 'Failed to update pastor status' });
+  }
+});
+
+// PUT /api/auth/churches - Select multiple churches
+router.put('/churches', authMiddleware, async (req, res) => {
+  try {
+    const db = getDB();
+    const { churchIds } = req.body;
+
+    if (!churchIds || !Array.isArray(churchIds)) {
+      return res.status(400).json({ error: 'churchIds array is required' });
+    }
+
+    // Set first church in the list as the primary churchId for compatibility
+    const primaryChurchId = churchIds.length > 0 ? churchIds[0] : null;
+
+    await db.collection('users').updateOne(
+      { firebaseUid: req.user.uid },
+      {
+        $set: {
+          churchIds,
+          churchId: primaryChurchId,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    return res.json({ success: true, churchIds, churchId: primaryChurchId });
+  } catch (err) {
+    console.error('Select multiple churches error:', err);
+    return res.status(500).json({ error: 'Failed to update churches list' });
+  }
+});
+
 function sanitizeUser(user) {
   const { _id, ...rest } = user;
   return { id: _id.toString(), ...rest };

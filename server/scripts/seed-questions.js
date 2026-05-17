@@ -196,7 +196,7 @@ function generateAdditionalQuestions() {
   return extraQuestions;
 }
 
-async function seed() {
+async function seed(shouldClose = true) {
   try {
     await connectDB();
     const { getDB } = require('../lib/db');
@@ -206,7 +206,7 @@ async function seed() {
     const count = await db.collection('questions').countDocuments();
     if (count > 0) {
       console.log(`Database already has ${count} questions. Skipping seed.`);
-      await closeDB();
+      if (shouldClose) await closeDB();
       return;
     }
 
@@ -222,11 +222,19 @@ async function seed() {
     allQuestions.forEach(q => { cats[q.category] = (cats[q.category] || 0) + 1; });
     console.log('Category breakdown:', cats);
 
-    await closeDB();
+    if (shouldClose) await closeDB();
   } catch (err) {
     console.error('❌ Seed failed:', err);
-    process.exit(1);
+    if (require.main === module) {
+      process.exit(1);
+    } else {
+      throw err;
+    }
   }
 }
 
-seed();
+if (require.main === module) {
+  seed();
+}
+
+module.exports = { seed, questions, generateAdditionalQuestions };

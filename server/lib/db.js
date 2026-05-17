@@ -29,6 +29,18 @@ async function connectDB() {
     indexesCreated = true;
   }
 
+  // Auto-seed questions if empty
+  try {
+    const questionCount = await db.collection('questions').countDocuments();
+    if (questionCount === 0) {
+      console.log('⚠️ Questions collection is empty. Auto-seeding default questions...');
+      const { seed } = require('../scripts/seed-questions');
+      await seed(false); // Do not close the DB connection after seeding!
+    }
+  } catch (seedErr) {
+    console.error('⚠️ Auto-seeding questions failed:', seedErr.message);
+  }
+
   console.log('✅ Connected to MongoDB Atlas');
   return db;
 }

@@ -95,12 +95,14 @@ router.get('/pending', authMiddleware, async (req, res) => {
   try {
     const db = getDB();
     const user = await db.collection('users').findOne({ firebaseUid: req.user.uid });
-    if (!user?.churchId) return res.json({ quizzes: [] });
+    
+    const churchIds = user?.churchIds || (user?.churchId ? [user.churchId] : []);
+    if (churchIds.length === 0) return res.json({ quizzes: [] });
 
     const quizzes = await db.collection('sermon_quizzes').find({
-      churchId: user.churchId,
+      churchId: { $in: churchIds },
       'completedBy.userId': { $ne: req.user.uid },
-    }).sort({ createdAt: -1 }).limit(10).toArray();
+    }).sort({ createdAt: -1 }).limit(20).toArray();
 
     return res.json({
       quizzes: quizzes.map(q => ({

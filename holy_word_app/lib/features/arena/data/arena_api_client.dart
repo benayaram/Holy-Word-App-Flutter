@@ -39,6 +39,14 @@ class ArenaApiClient {
     await _put('/auth/fcm-token', {'token': token});
   }
 
+  Future<void> togglePastor(bool isPastor) async {
+    await _put('/auth/pastor-toggle', {'isPastor': isPastor});
+  }
+
+  Future<void> updateChurches(List<String> churchIds) async {
+    await _put('/auth/churches', {'churchIds': churchIds});
+  }
+
   // ========== USERS ==========
 
   Future<ArenaUser> getProfile() async {

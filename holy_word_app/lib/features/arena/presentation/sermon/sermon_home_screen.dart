@@ -80,49 +80,98 @@ class SermonHomeScreen extends ConsumerWidget {
   void _showCreateDialog(BuildContext context, WidgetRef ref) {
     final titleCtrl = TextEditingController();
     final pointCtrls = List.generate(5, (_) => TextEditingController());
+    final user = ref.read(arenaUserProvider).value;
+    String? selectedChurch = user?.churchIds.isNotEmpty == true
+        ? user!.churchIds.first
+        : user?.churchId;
 
-    showDialog(context: context, builder: (ctx) => AlertDialog(
-      backgroundColor: ArenaTheme.surface,
-      title: const Text('Create Sermon Quiz', style: TextStyle(color: Colors.white)),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: titleCtrl, style: const TextStyle(color: Colors.white),
-            decoration: _inputDec('Sermon Title')),
-          const SizedBox(height: 12),
-          ...List.generate(5, (i) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: TextField(controller: pointCtrls[i], style: const TextStyle(color: Colors.white),
-              decoration: _inputDec('Key Point ${i + 1}')),
-          )),
-        ])),
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-        ElevatedButton(
-          onPressed: () async {
-            final points = pointCtrls.map((c) => c.text).where((t) => t.isNotEmpty).toList();
-            if (titleCtrl.text.isEmpty || points.isEmpty) return;
-            try {
-              final api = ref.read(arenaApiClientProvider);
-              final user = ref.read(arenaUserProvider).value;
-              await api.createSermonQuiz(
-                title: titleCtrl.text, keyPoints: points, churchId: user?.churchId ?? '');
-              if (ctx.mounted) {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Sermon quiz created! 📖')));
-                ref.invalidate(pendingSermonsProvider);
-              }
-            } catch (e) {
-              if (ctx.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-            }
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: ArenaTheme.surface,
+              title: const Text('Create Sermon Quiz', style: TextStyle(color: Colors.white)),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (user != null && user.churchIds.length > 1) ...[
+                        DropdownButtonFormField<String>(
+                          value: selectedChurch,
+                          dropdownColor: ArenaTheme.surface,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: _inputDec('Select Church to Post to'),
+                          items: user.churchIds.map((c) => DropdownMenuItem(
+                            value: c,
+                            child: Text(c),
+                          )).toList(),
+                          onChanged: (val) {
+                            setDialogState(() {
+                              selectedChurch = val;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      TextField(
+                        controller: titleCtrl,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: _inputDec('Sermon Title'),
+                      ),
+                      const SizedBox(height: 12),
+                      ...List.generate(5, (i) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: TextField(
+                          controller: pointCtrls[i],
+                          style: const TextStyle(color: Colors.white),
+                          decoration: _inputDec('Key Point ${i + 1}'),
+                        ),
+                      )),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                ElevatedButton(
+                  onPressed: () async {
+                    final points = pointCtrls.map((c) => c.text).where((t) => t.isNotEmpty).toList();
+                    if (titleCtrl.text.isEmpty || points.isEmpty) return;
+                    try {
+                      final api = ref.read(arenaApiClientProvider);
+                      await api.createSermonQuiz(
+                        title: titleCtrl.text,
+                        keyPoints: points,
+                        churchId: selectedChurch ?? user?.churchId ?? '',
+                      );
+                      if (ctx.mounted) {
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Sermon quiz created! 📖')),
+                        );
+                        ref.invalidate(pendingSermonsProvider);
+                      }
+                    } catch (e) {
+                      if (ctx.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: $e')),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: ArenaTheme.sermonPink),
+                  child: const Text('Create', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
           },
-          style: ElevatedButton.styleFrom(backgroundColor: ArenaTheme.sermonPink),
-          child: const Text('Create', style: TextStyle(color: Colors.white)),
-        ),
-      ],
-    ));
+        );
+      },
+    );
   }
 
   InputDecoration _inputDec(String hint) => InputDecoration(

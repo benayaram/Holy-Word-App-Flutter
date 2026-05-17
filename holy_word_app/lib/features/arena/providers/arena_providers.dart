@@ -52,7 +52,17 @@ class ArenaUserNotifier extends AsyncNotifier<ArenaUser?> {
       throw Exception('Failed to obtain authentication token');
     }
     api.setAuthToken(token);
-    return await api.getProfile();
+    try {
+      return await api.getProfile();
+    } on ApiException catch (e) {
+      if (e.statusCode == 404) {
+        debugPrint('ArenaUserNotifier: User profile not found in MongoDB (404). Auto-registering...');
+        return await api.register(
+          displayName: user.displayName ?? (user.isAnonymous ? 'Guest Player' : 'User'),
+        );
+      }
+      rethrow;
+    }
   }
 
   Future<void> refresh() async {

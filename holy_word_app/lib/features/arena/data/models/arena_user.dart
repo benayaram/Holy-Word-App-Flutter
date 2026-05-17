@@ -17,6 +17,7 @@ class ArenaUser {
   final int totalCorrectAnswers;
   final int totalAnswers;
   final String? churchId;
+  final List<String> churchIds;
   final bool isPastor;
   final List<ArenaBadge> badges;
   final ArenaStats? stats;
@@ -39,6 +40,7 @@ class ArenaUser {
     this.totalCorrectAnswers = 0,
     this.totalAnswers = 0,
     this.churchId,
+    this.churchIds = const [],
     this.isPastor = false,
     this.badges = const [],
     this.stats,
@@ -89,6 +91,7 @@ class ArenaUser {
       totalCorrectAnswers: json['totalCorrectAnswers'] ?? 0,
       totalAnswers: json['totalAnswers'] ?? 0,
       churchId: json['churchId'],
+      churchIds: (json['churchIds'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       isPastor: json['isPastor'] ?? false,
       badges: (json['badges'] as List<dynamic>?)
               ?.map((b) => ArenaBadge.fromJson(b))
@@ -111,6 +114,7 @@ class ArenaUser {
         'battleLosses': battleLosses,
         'winStreak': winStreak,
         'versesMemorized': versesMemorized,
+        'churchIds': churchIds,
       };
 }
 

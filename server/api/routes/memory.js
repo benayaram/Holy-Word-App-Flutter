@@ -38,23 +38,46 @@ router.post('/progress', authMiddleware, async (req, res) => {
     const db = getDB();
     const { bookId, chapter, verse, reference, verseText, level, timeMs, language = 'en' } = req.body;
 
-    if (!bookId || !chapter || !verse || !level) {
+    if (bookId === undefined || chapter === undefined || verse === undefined || level === undefined) {
       return res.status(400).json({ error: 'bookId, chapter, verse, and level are required' });
     }
 
+    let targetBookId = parseInt(bookId);
+    let targetChapter = parseInt(chapter);
+    let targetVerse = parseInt(verse);
+    const targetLevel = parseInt(level);
+
+    if (targetBookId === 0 && targetChapter === 0 && targetVerse === 0) {
+      // It is a custom verse! Find the highest existing verse number for bookId=0, chapter=0 for this user
+      const highestCustom = await db.collection('memory_progress')
+        .find({ userId: req.user.uid, bookId: 0, chapter: 0 })
+        .sort({ verse: -1 })
+        .limit(1)
+        .toArray();
+
+      if (highestCustom.length > 0) {
+        targetVerse = highestCustom[0].verse + 1;
+      } else {
+        targetVerse = 1; // start at 1
+      }
+    }
+
     const existing = await db.collection('memory_progress').findOne({
-      userId: req.user.uid, bookId, chapter, verse,
+      userId: req.user.uid,
+      bookId: targetBookId,
+      chapter: targetChapter,
+      verse: targetVerse,
     });
 
     if (existing) {
       // Update existing progress
       const update = {
-        $set: { currentLevel: Math.max(existing.currentLevel, level), updatedAt: new Date() },
-        $addToSet: { completedLevels: level },
+        $set: { currentLevel: Math.max(existing.currentLevel, targetLevel), updatedAt: new Date() },
+        $addToSet: { completedLevels: targetLevel },
       };
 
       // Update best time for level 5 only
-      if (level === 5 && timeMs) {
+      if (targetLevel === 5 && timeMs) {
         if (!existing.bestTimeMs || timeMs < existing.bestTimeMs) {
           update.$set.bestTimeMs = timeMs;
         }
@@ -65,11 +88,14 @@ router.post('/progress', authMiddleware, async (req, res) => {
       // Create new entry
       await db.collection('memory_progress').insertOne({
         userId: req.user.uid,
-        bookId, chapter, verse, reference: reference || '',
+        bookId: targetBookId,
+        chapter: targetChapter,
+        verse: targetVerse,
+        reference: reference || '',
         verseText: verseText || '',
-        currentLevel: level,
-        completedLevels: [level],
-        bestTimeMs: level === 5 ? timeMs : null,
+        currentLevel: targetLevel,
+        completedLevels: [targetLevel],
+        bestTimeMs: targetLevel === 5 ? timeMs : null,
         language,
         createdAt: new Date(), updatedAt: new Date(),
       });

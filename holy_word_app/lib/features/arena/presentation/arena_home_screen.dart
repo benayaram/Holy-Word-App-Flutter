@@ -246,14 +246,31 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: () => ref.read(arenaUserProvider.notifier).refresh(),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ArenaTheme.primary,
-                      foregroundColor: Colors.white,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () => ref.read(arenaUserProvider.notifier).refresh(),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ArenaTheme.primary,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          await fb.FirebaseAuth.instance.signOut();
+                        },
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Sign Out'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white70,
+                          side: const BorderSide(color: Colors.white30),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

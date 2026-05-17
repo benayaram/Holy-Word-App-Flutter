@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart'; // For Clipboard
 import 'package:share_plus/share_plus.dart';
+import 'package:holy_word_app/features/arena/providers/arena_providers.dart';
 // For Share Image
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 // import 'package:holy_word_app/l10n/app_localizations.dart'; // Unused
@@ -338,6 +339,66 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
         },
       ),
     );
+  }
+
+  void _handleAddToMemory() async {
+    final selectedVerses = _verses
+        .where((v) => _selectedVerseIndexes.contains(_verses.indexOf(v)))
+        .toList();
+    selectedVerses
+        .sort((a, b) => (a['verse'] as int).compareTo(b['verse'] as int));
+
+    if (selectedVerses.isEmpty) return;
+
+    final book = _books.firstWhere((b) => b['id'] == _selectedBookId);
+    final isTelugu = ref.read(languageProvider) == 'telugu';
+    final bookName =
+        isTelugu ? (book['telugu_name'] ?? book['name']) : book['name'];
+
+    final firstVerseNum = selectedVerses.first['verse'] as int;
+    final lastVerseNum = selectedVerses.last['verse'] as int;
+    String refStr = '$bookName $_selectedChapter:$firstVerseNum';
+    if (firstVerseNum != lastVerseNum) {
+      refStr += '-$lastVerseNum';
+    }
+
+    final textBuffer = StringBuffer();
+    for (int i = 0; i < selectedVerses.length; i++) {
+      final v = selectedVerses[i];
+      final text = isTelugu ? (v['telugu_text'] ?? v['text']) : v['text'];
+      textBuffer.write(text);
+      if (i < selectedVerses.length - 1) {
+        textBuffer.write(' ');
+      }
+    }
+    final verseText = textBuffer.toString();
+
+    try {
+      final api = ref.read(arenaApiClientProvider);
+      await api.saveMemoryProgress(
+        bookId: _selectedBookId,
+        chapter: _selectedChapter,
+        verse: firstVerseNum,
+        reference: refStr,
+        verseText: verseText,
+        level: 1,
+        language: isTelugu ? 'te' : 'en',
+      );
+      ref.invalidate(memoryProgressProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Added to Scripture Memory! 🧠')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error adding to memory: $e')),
+        );
+      }
+    } finally {
+      _clearSelection();
+    }
   }
 
   void _shareVerse() {
@@ -797,6 +858,8 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
             _buildActionButton(Icons.image, 'Share Image', _handleShareImage),
             const SizedBox(width: 12),
             _buildActionButton(Icons.copy, 'Copy', _handleCopy),
+            const SizedBox(width: 12),
+            _buildActionButton(Icons.psychology, 'Memorize', _handleAddToMemory),
             const SizedBox(width: 12),
             _buildActionButton(Icons.link, 'Cross Ref', _handleCrossRef),
           ],
