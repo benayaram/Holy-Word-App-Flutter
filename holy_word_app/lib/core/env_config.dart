@@ -4,12 +4,12 @@ class EnvConfig {
   // Arena API Configuration
   static const String arenaApiUrl = String.fromEnvironment(
     'ARENA_API_URL',
-    defaultValue: 'http://10.0.2.2:3000/api', // Android emulator localhost
+    defaultValue: 'https://holy-word-app-flutter.vercel.app/api',
   );
 
   static const String arenaWsUrl = String.fromEnvironment(
     'ARENA_WS_URL',
-    defaultValue: 'ws://10.0.2.2:3000/ws',
+    defaultValue: 'wss://holy-word-app-flutter.vercel.app/ws',
   );
 
   // For production, override via --dart-define:
