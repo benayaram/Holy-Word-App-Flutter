@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../arena_theme.dart';
 import 'quiz_play_screen.dart';
 
 class QuizHomeScreen extends ConsumerWidget {
@@ -23,7 +24,7 @@ class QuizHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a2e),
+      backgroundColor: ArenaTheme.background,
       appBar: AppBar(
         title: const Text('Bible Quiz', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
@@ -40,7 +41,7 @@ class QuizHomeScreen extends ConsumerWidget {
           Text(
             'Choose a Category',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 18, fontWeight: FontWeight.w700,
             ),
           ),
@@ -69,7 +70,7 @@ class QuizHomeScreen extends ConsumerWidget {
           // Difficulty selector shown as chips
           Text(
             'Difficulty affects question complexity and XP earned',
-            style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12),
             textAlign: TextAlign.center,
           ),
         ],
@@ -89,7 +90,7 @@ class QuizHomeScreen extends ConsumerWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFe94560).withOpacity(0.4),
+              color: ArenaTheme.primary.withValues(alpha: 0.4),
               blurRadius: 16,
               offset: const Offset(0, 8),
             ),
@@ -100,7 +101,7 @@ class QuizHomeScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 32),
@@ -117,7 +118,7 @@ class QuizHomeScreen extends ConsumerWidget {
                   ),
                   Text(
                     '10 random questions • All categories',
-                    style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13),
                   ),
                 ],
               ),
@@ -137,8 +138,8 @@ class QuizHomeScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: Colors.white.withOpacity(0.06),
-          border: Border.all(color: color.withOpacity(0.3)),
+          color: Colors.white.withValues(alpha: 0.06),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,7 +153,7 @@ class QuizHomeScreen extends ConsumerWidget {
             ),
             Text(
               cat['labelTe'] as String,
-              style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11),
             ),
           ],
         ),
@@ -163,7 +164,7 @@ class QuizHomeScreen extends ConsumerWidget {
   void _showDifficultyPicker(BuildContext context, WidgetRef ref, String category) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF16213e),
+      backgroundColor: ArenaTheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -195,10 +196,10 @@ class QuizHomeScreen extends ConsumerWidget {
         Navigator.pop(ctx);
         _startQuiz(ctx, ref, category, difficulty);
       },
-      leading: CircleAvatar(backgroundColor: color.withOpacity(0.2),
+      leading: CircleAvatar(backgroundColor: color.withValues(alpha: 0.2),
           child: Icon(icon, color: color, size: 22)),
       title: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-      subtitle: Text(desc, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
+      subtitle: Text(desc, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
       trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white38, size: 16),
       contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     );

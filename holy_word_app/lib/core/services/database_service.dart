@@ -151,15 +151,8 @@ class DatabaseService {
 
   Future<void> _createTables(Database db) async {
     // Create each table separately to ensure reliability
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS notes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        verse_text TEXT NOT NULL,
-        reference TEXT NOT NULL,
-        note_content TEXT,
-        created_at TEXT NOT NULL
-      )
-    ''');
+    // Drop legacy notes table if it exists
+    await db.execute('DROP TABLE IF EXISTS notes');
 
     await db.execute('''
       CREATE TABLE IF NOT EXISTS notes_v2 (

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/arena_providers.dart';
+import '../arena_theme.dart';
 
 class SermonQuizScreen extends ConsumerStatefulWidget {
   final String sermonId;
@@ -14,6 +15,7 @@ class SermonQuizScreen extends ConsumerStatefulWidget {
 
 class _SermonQuizScreenState extends ConsumerState<SermonQuizScreen> {
   List<Map<String, dynamic>> _questions = [];
+  List<int> _userAnswers = [];
   int _currentIndex = 0;
   bool _loading = true;
   bool _answered = false;
@@ -33,8 +35,10 @@ class _SermonQuizScreenState extends ConsumerState<SermonQuizScreen> {
       final api = ref.read(arenaApiClientProvider);
       final res = await api.getSermonQuiz(widget.sermonId);
       final qList = res['quiz']?['questions'] as List? ?? [];
+      if (!mounted) return;
       setState(() {
         _questions = qList.map((q) => Map<String, dynamic>.from(q as Map)).toList();
+        _userAnswers = List<int>.filled(_questions.length, -1);
         _loading = false;
       });
     } catch (e) {
@@ -47,6 +51,7 @@ class _SermonQuizScreenState extends ConsumerState<SermonQuizScreen> {
     setState(() {
       _answered = true;
       _selectedAnswer = answer;
+      _userAnswers[_currentIndex] = answer;
       final correct = _questions[_currentIndex]['correctAnswer'] as int? ?? 0;
       if (answer == correct) _score++;
     });
@@ -68,9 +73,9 @@ class _SermonQuizScreenState extends ConsumerState<SermonQuizScreen> {
   Future<void> _submitQuiz() async {
     try {
       final api = ref.read(arenaApiClientProvider);
-      final answers = List.generate(_questions.length, (i) => 0); // simplified
-      await api.submitSermon(widget.sermonId, answers);
+      await api.submitSermon(widget.sermonId, _userAnswers);
     } catch (_) {}
+    if (!mounted) return;
     setState(() => _completed = true);
     ref.invalidate(pendingSermonsProvider);
   }
@@ -78,13 +83,13 @@ class _SermonQuizScreenState extends ConsumerState<SermonQuizScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a2e),
+      backgroundColor: ArenaTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         title: Text(widget.title, style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFfa709a)))
+          ? const Center(child: CircularProgressIndicator(color: ArenaTheme.sermonPink))
           : _error != null
               ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
               : _completed
@@ -148,16 +153,16 @@ class _SermonQuizScreenState extends ConsumerState<SermonQuizScreen> {
                 final isCorrect = correct == idx;
                 final showResult = _answered;
 
-                Color bg = Colors.white.withOpacity(0.08);
-                Color border = Colors.white.withOpacity(0.15);
+                Color bg = Colors.white.withValues(alpha: 0.08);
+                Color border = Colors.white.withValues(alpha: 0.15);
 
                 if (showResult) {
                   if (isCorrect) {
-                    bg = const Color(0xFF10b981).withOpacity(0.2);
-                    border = const Color(0xFF10b981);
+                    bg = ArenaTheme.success.withValues(alpha: 0.2);
+                    border = ArenaTheme.success;
                   } else if (isSelected) {
-                    bg = const Color(0xFFe94560).withOpacity(0.2);
-                    border = const Color(0xFFe94560);
+                    bg = ArenaTheme.primary.withValues(alpha: 0.2);
+                    border = ArenaTheme.primary;
                   }
                 }
 
@@ -177,10 +182,10 @@ class _SermonQuizScreenState extends ConsumerState<SermonQuizScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: showResult && isCorrect
-                                ? const Color(0xFF10b981)
+                                ? ArenaTheme.success
                                 : showResult && isSelected
-                                    ? const Color(0xFFe94560)
-                                    : Colors.white.withOpacity(0.15)),
+                                    ? ArenaTheme.primary
+                                    : Colors.white.withValues(alpha: 0.15)),
                           child: Center(child: showResult && isCorrect
                               ? const Icon(Icons.check, color: Colors.white, size: 18)
                               : showResult && isSelected
@@ -222,15 +227,15 @@ class _SermonQuizScreenState extends ConsumerState<SermonQuizScreen> {
             Text('$_score/$total correct',
                 style: const TextStyle(color: Colors.white70, fontSize: 20)),
             Text('$pct% accuracy',
-                style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 16)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 16)),
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFFfa709a).withOpacity(0.2),
+                color: ArenaTheme.sermonPink.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12)),
               child: Text('+${_score * 10} XP', style: const TextStyle(
-                  color: Color(0xFFfa709a), fontSize: 18, fontWeight: FontWeight.bold)),
+                  color: ArenaTheme.sermonPink, fontSize: 18, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 40),
             SizedBox(
@@ -238,7 +243,7 @@ class _SermonQuizScreenState extends ConsumerState<SermonQuizScreen> {
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFfa709a),
+                  backgroundColor: ArenaTheme.sermonPink,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                 child: const Text('Done', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
               ),

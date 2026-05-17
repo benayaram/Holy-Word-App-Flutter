@@ -1,6 +1,8 @@
 // WebSocket Battle Room Manager
 const { WebSocketServer } = require('ws');
+const admin = require('firebase-admin');
 const { getDB } = require('./db');
+const { calcLevel } = require('./levels');
 const { ObjectId } = require('mongodb');
 
 // Active battle rooms: battleId -> { players: Map<userId, ws>, state }
@@ -33,7 +35,7 @@ function initWebSocket(server) {
     });
 
     ws.on('error', (err) => {
-      console.error('WebSocket error:', err.message);
+      console.error('[WS Error]', err.message);
     });
   });
 
@@ -57,9 +59,22 @@ async function handleMessage(ws, msg, getUserId, setUserId) {
 
   switch (event) {
     case 'auth': {
-      // Client sends Firebase UID after connecting
-      setUserId(data.userId);
-      ws.send(JSON.stringify({ event: 'auth:success', data: { userId: data.userId } }));
+      // Client sends Firebase ID token for verification
+      const token = data.token;
+      if (!token) {
+        ws.send(JSON.stringify({ event: 'auth:error', data: { message: 'Token required' } }));
+        ws.close();
+        return;
+      }
+
+      try {
+        const decoded = await admin.auth().verifyIdToken(token);
+        setUserId(decoded.uid);
+        ws.send(JSON.stringify({ event: 'auth:success', data: { userId: decoded.uid } }));
+      } catch (err) {
+        ws.send(JSON.stringify({ event: 'auth:error', data: { message: 'Invalid token' } }));
+        ws.close();
+      }
       break;
     }
 
@@ -380,7 +395,7 @@ async function endBattle(battleId) {
     // Update level based on new XP
     const user = await db.collection('users').findOne({ firebaseUid: pid });
     if (user) {
-      const newLevel = calculateLevel(user.xp + xpEarned[pid], user.versesMemorized || 0);
+      const newLevel = calcLevel(user.xp + xpEarned[pid], user.versesMemorized || 0);
       await db.collection('users').updateOne(
         { firebaseUid: pid },
         { $set: { level: newLevel } }
@@ -440,14 +455,6 @@ function broadcastToRoom(battleId, message) {
       ws.send(payload);
     }
   });
-}
-
-function calculateLevel(xp, versesMemorized) {
-  if (versesMemorized >= 365) return 'Living Word';
-  if (xp >= 5000) return 'Apostle';
-  if (xp >= 2000) return 'Elder';
-  if (xp >= 500) return 'Disciple';
-  return 'Seeker';
 }
 
 module.exports = { initWebSocket, battleRooms };

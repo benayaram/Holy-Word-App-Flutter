@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/arena_providers.dart';
+import '../arena_theme.dart';
 import 'sermon_quiz_screen.dart';
 
 class SermonHomeScreen extends ConsumerWidget {
@@ -12,7 +13,7 @@ class SermonHomeScreen extends ConsumerWidget {
     final user = ref.watch(arenaUserProvider).value;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a2e),
+      backgroundColor: ArenaTheme.background,
       appBar: AppBar(
         title: const Text('Sermon Notes', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent, elevation: 0,
@@ -25,19 +26,19 @@ class SermonHomeScreen extends ConsumerWidget {
         ],
       ),
       body: sermonsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFfa709a))),
+        loading: () => const Center(child: CircularProgressIndicator(color: ArenaTheme.sermonPink)),
         error: (e, _) => Center(child: Text('$e', style: const TextStyle(color: Colors.red))),
         data: (quizzes) {
           if (quizzes.isEmpty) {
             return Center(child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.church_rounded, color: Color(0xFFfa709a), size: 80),
+                const Icon(Icons.church_rounded, color: ArenaTheme.sermonPink, size: 80),
                 const SizedBox(height: 16),
                 const Text('No Sermon Quizzes', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Text('Your pastor will post quizzes here after sermons',
-                    style: TextStyle(color: Colors.white.withOpacity(0.6)), textAlign: TextAlign.center),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.6)), textAlign: TextAlign.center),
               ],
             ));
           }
@@ -50,17 +51,17 @@ class SermonHomeScreen extends ConsumerWidget {
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [const Color(0xFFfa709a).withOpacity(0.15), const Color(0xFFfee140).withOpacity(0.05)]),
+                    colors: [ArenaTheme.sermonPink.withValues(alpha: 0.15), ArenaTheme.xpGold.withValues(alpha: 0.05)]),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFfa709a).withOpacity(0.3)),
+                  border: Border.all(color: ArenaTheme.sermonPink.withValues(alpha: 0.3)),
                 ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(16),
-                  leading: const CircleAvatar(backgroundColor: Color(0xFFfa709a),
+                  leading: const CircleAvatar(backgroundColor: ArenaTheme.sermonPink,
                       child: Icon(Icons.church, color: Colors.white)),
                   title: Text(q.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   subtitle: Text('${q.questionCount} questions • ${q.completedCount} completed',
-                      style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13)),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13)),
                   trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white38, size: 16),
                   onTap: () {
                     Navigator.push(context, MaterialPageRoute(
@@ -81,7 +82,7 @@ class SermonHomeScreen extends ConsumerWidget {
     final pointCtrls = List.generate(5, (_) => TextEditingController());
 
     showDialog(context: context, builder: (ctx) => AlertDialog(
-      backgroundColor: const Color(0xFF16213e),
+      backgroundColor: ArenaTheme.surface,
       title: const Text('Create Sermon Quiz', style: TextStyle(color: Colors.white)),
       content: SizedBox(
         width: double.maxFinite,
@@ -117,7 +118,7 @@ class SermonHomeScreen extends ConsumerWidget {
               if (ctx.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
             }
           },
-          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFfa709a)),
+          style: ElevatedButton.styleFrom(backgroundColor: ArenaTheme.sermonPink),
           child: const Text('Create', style: TextStyle(color: Colors.white)),
         ),
       ],
@@ -125,8 +126,8 @@ class SermonHomeScreen extends ConsumerWidget {
   }
 
   InputDecoration _inputDec(String hint) => InputDecoration(
-    hintText: hint, hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-    filled: true, fillColor: Colors.white.withOpacity(0.08),
+    hintText: hint, hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+    filled: true, fillColor: Colors.white.withValues(alpha: 0.08),
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
   );
 }

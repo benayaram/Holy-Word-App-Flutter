@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/memory_battle_service.dart';
 import '../../providers/arena_providers.dart';
 import '../../data/models/battle.dart';
+import '../arena_theme.dart';
 
 class MemoryBattleScreen extends ConsumerStatefulWidget {
   final MemoryVerse verse;
@@ -26,6 +27,7 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
   Timer? _timer;
   int _elapsedMs = 0;
   bool _timerRunning = false;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -63,7 +65,7 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
     final displayText = _memoryService.getTextForLevel(widget.verse.verseText, _currentLevel);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a2e),
+      backgroundColor: ArenaTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         title: Text(widget.verse.reference,
@@ -73,7 +75,7 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
             padding: const EdgeInsets.only(right: 16),
             child: Text(
               '${(_elapsedMs / 1000).toStringAsFixed(1)}s',
-              style: const TextStyle(color: Color(0xFFf59e0b), fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: ArenaTheme.xpGold, fontSize: 16, fontWeight: FontWeight.bold),
             ),
           )),
         ],
@@ -96,8 +98,8 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
               final completed = level < _currentLevel;
               final active = level == _currentLevel;
               final colors = [
-                const Color(0xFF10b981), const Color(0xFF3b82f6),
-                const Color(0xFF8b5cf6), const Color(0xFFf59e0b), const Color(0xFFe94560),
+                ArenaTheme.success, ArenaTheme.discipleBlue,
+                ArenaTheme.elderPurple, ArenaTheme.xpGold, ArenaTheme.primary,
               ];
               return Expanded(
                 child: Container(
@@ -106,8 +108,8 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(3),
                     color: completed ? colors[i] : active
-                        ? colors[i].withOpacity(0.5)
-                        : Colors.white.withOpacity(0.1),
+                        ? colors[i].withValues(alpha: 0.5)
+                        : Colors.white.withValues(alpha: 0.1),
                   ),
                 ),
               );
@@ -119,9 +121,9 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.06),
+              color: Colors.white.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: Row(
               children: [
@@ -129,11 +131,11 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
                   width: 44, height: 44,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    color: const Color(0xFF667eea).withOpacity(0.2),
+                    color: ArenaTheme.memoryPurple.withValues(alpha: 0.2),
                   ),
                   child: Center(
                     child: Text('$_currentLevel',
-                        style: const TextStyle(color: Color(0xFF667eea), fontSize: 20, fontWeight: FontWeight.w900)),
+                        style: const TextStyle(color: ArenaTheme.memoryPurple, fontSize: 20, fontWeight: FontWeight.w900)),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -144,7 +146,7 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
                       Text(levelInfo['name'] as String,
                           style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                       Text(levelInfo['description'] as String,
-                          style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
                     ],
                   ),
                 ),
@@ -167,15 +169,17 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
             SizedBox(
               width: double.infinity, height: 52,
               child: ElevatedButton(
-                onPressed: _handleLevelAction,
+                onPressed: _isSaving ? null : _handleLevelAction,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF667eea),
+                  backgroundColor: ArenaTheme.memoryPurple,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                child: Text(
-                  _currentLevel <= 4 ? 'I\'ve Read It — Next Level' : 'Check My Answer',
-                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
-                ),
+                child: _isSaving
+                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Text(
+                        _currentLevel <= 4 ? 'I\'ve Read It — Next Level' : 'Check My Answer',
+                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
               ),
             ),
         ],
@@ -189,9 +193,9 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.04),
+            color: Colors.white.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF667eea).withOpacity(0.2)),
+            border: Border.all(color: ArenaTheme.memoryPurple.withValues(alpha: 0.2)),
           ),
           child: Text(
             displayText,
@@ -210,15 +214,15 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
     return Column(
       children: [
         Text('Type the verse from memory:',
-            style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 14)),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 14)),
         const SizedBox(height: 12),
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.06),
+              color: Colors.white.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF667eea).withOpacity(0.3)),
+              border: Border.all(color: ArenaTheme.memoryPurple.withValues(alpha: 0.3)),
             ),
             child: TextField(
               controller: _textController,
@@ -227,7 +231,7 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
               style: const TextStyle(color: Colors.white, fontSize: 18, height: 1.6),
               decoration: InputDecoration(
                 hintText: 'Start typing...',
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.2)),
+                hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
                 border: InputBorder.none,
               ),
               onChanged: (_) {
@@ -250,11 +254,11 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: passed
-            ? const Color(0xFF10b981).withOpacity(0.15)
-            : const Color(0xFFe94560).withOpacity(0.15),
+            ? ArenaTheme.success.withValues(alpha: 0.15)
+            : ArenaTheme.primary.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: passed ? const Color(0xFF10b981) : const Color(0xFFe94560),
+          color: passed ? ArenaTheme.success : ArenaTheme.primary,
           width: 1.5),
       ),
       child: Column(
@@ -263,12 +267,12 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(passed ? Icons.check_circle : Icons.cancel,
-                  color: passed ? const Color(0xFF10b981) : const Color(0xFFe94560), size: 28),
+                  color: passed ? ArenaTheme.success : ArenaTheme.primary, size: 28),
               const SizedBox(width: 10),
               Text(
                 passed ? 'Level Passed!' : 'Try Again',
                 style: TextStyle(
-                  color: passed ? const Color(0xFF10b981) : const Color(0xFFe94560),
+                  color: passed ? ArenaTheme.success : ArenaTheme.primary,
                   fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ],
@@ -276,12 +280,12 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
           if (_accuracy != null) ...[
             const SizedBox(height: 8),
             Text('Accuracy: $_accuracy%',
-                style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14)),
           ],
           if (_currentLevel == 5 && passed) ...[
             const SizedBox(height: 4),
             Text('Time: ${(_elapsedMs / 1000).toStringAsFixed(1)}s',
-                style: const TextStyle(color: Color(0xFFf59e0b), fontSize: 14)),
+                style: const TextStyle(color: ArenaTheme.xpGold, fontSize: 14)),
           ],
           const SizedBox(height: 12),
           SizedBox(
@@ -308,7 +312,7 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: passed ? const Color(0xFF667eea) : const Color(0xFFe94560),
+                backgroundColor: passed ? ArenaTheme.memoryPurple : ArenaTheme.primary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(
@@ -329,52 +333,35 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.emoji_events_rounded, color: Color(0xFFf59e0b), size: 80),
+            const Icon(Icons.emoji_events_rounded, color: ArenaTheme.xpGold, size: 80),
             const SizedBox(height: 24),
             const Text('Verse Memorized! 🎉',
                 style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
             Text(widget.verse.reference,
-                style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 18)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 18)),
             const SizedBox(height: 8),
             Text('Time: ${(_elapsedMs / 1000).toStringAsFixed(1)}s',
-                style: const TextStyle(color: Color(0xFFf59e0b), fontSize: 16)),
+                style: const TextStyle(color: ArenaTheme.xpGold, fontSize: 16)),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF10b981).withOpacity(0.2),
+                color: ArenaTheme.success.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text('+25 XP earned!',
-                  style: TextStyle(color: Color(0xFF10b981), fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: TextStyle(color: ArenaTheme.success, fontSize: 16, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 40),
             SizedBox(
               width: double.infinity, height: 52,
               child: ElevatedButton(
-                onPressed: () async {
-                  // Save progress to server
-                  try {
-                    final api = ref.read(arenaApiClientProvider);
-                    await api.saveMemoryProgress(
-                      bookId: widget.verse.bookId,
-                      chapter: widget.verse.chapter,
-                      verse: widget.verse.verse,
-                      reference: widget.verse.reference,
-                      verseText: widget.verse.verseText,
-                      level: 5,
-                      timeMs: _elapsedMs,
-                      language: widget.verse.language,
-                    );
-                    ref.invalidate(memoryProgressProvider);
-                  } catch (e) {
-                    debugPrint('Failed to save memory progress: $e');
-                  }
+                onPressed: () {
                   if (mounted) Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFe94560),
+                  backgroundColor: ArenaTheme.primary,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
                 child: const Text('Back to Verses',
@@ -387,23 +374,30 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
     );
   }
 
-  void _handleLevelAction() {
+  Future<void> _handleLevelAction() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+
     if (_currentLevel <= 4) {
       // Levels 1-4: reading/recognition — auto-pass
-      _saveLevel(_currentLevel);
+      await _saveLevel(_currentLevel);
+      if (!mounted) return;
       setState(() {
         _levelComplete = true;
         _accuracy = 100;
+        _isSaving = false;
       });
     } else {
       // Level 5: validate typed input
       _stopTimer();
       final accuracy = _memoryService.validateRecall(
         widget.verse.verseText, _textController.text);
-      _saveLevel(_currentLevel);
+      await _saveLevel(_currentLevel);
+      if (!mounted) return;
       setState(() {
         _levelComplete = true;
         _accuracy = accuracy;
+        _isSaving = false;
       });
     }
   }
@@ -421,8 +415,14 @@ class _MemoryBattleScreenState extends ConsumerState<MemoryBattleScreen>
         timeMs: level == 5 ? _elapsedMs : null,
         language: widget.verse.language,
       );
+      ref.invalidate(memoryProgressProvider);
     } catch (e) {
       debugPrint('Save level progress error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save progress: $e')),
+        );
+      }
     }
   }
 }

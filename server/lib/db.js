@@ -3,6 +3,7 @@ const { MongoClient } = require('mongodb');
 
 let client = null;
 let db = null;
+let indexesCreated = false;
 
 async function connectDB() {
   if (db) return db;
@@ -22,8 +23,11 @@ async function connectDB() {
   await client.connect();
   db = client.db('holy_word_arena');
 
-  // Create indexes for performance
-  await createIndexes(db);
+  // Create indexes only once per process lifetime
+  if (!indexesCreated) {
+    await createIndexes(db);
+    indexesCreated = true;
+  }
 
   console.log('✅ Connected to MongoDB Atlas');
   return db;

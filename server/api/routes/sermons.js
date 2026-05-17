@@ -156,6 +156,10 @@ router.post('/:id/submit', authMiddleware, async (req, res) => {
     if (!answers || !Array.isArray(answers))
       return res.status(400).json({ error: 'answers array required' });
 
+    // Reject unanswered questions (placeholder value -1)
+    if (answers.some(a => a === -1 || a === null || a === undefined))
+      return res.status(400).json({ error: 'All questions must be answered' });
+
     const quiz = await db.collection('sermon_quizzes').findOne({ _id: new ObjectId(req.params.id) });
     if (!quiz) return res.status(404).json({ error: 'Sermon quiz not found' });
 

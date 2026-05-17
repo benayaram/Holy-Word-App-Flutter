@@ -4,12 +4,14 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:google_sign_in/google_sign_in.dart';
 import '../providers/arena_providers.dart';
 import '../data/models/arena_user.dart';
+import 'arena_theme.dart';
 import 'quiz/quiz_home_screen.dart';
 import 'scripture_memory/memory_home_screen.dart';
 import 'battle/battle_home_screen.dart';
 import 'sermon/sermon_home_screen.dart';
 import 'common/leaderboard_screen.dart';
-import 'common/profile_screen.dart';
+import '../common/profile_screen.dart';
+import '../../../../core/services/notification_service.dart';
 
 class ArenaHomeScreen extends ConsumerStatefulWidget {
   const ArenaHomeScreen({super.key});
@@ -29,6 +31,23 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initPushNotifications();
+    });
+  }
+
+  Future<void> _initPushNotifications() async {
+    final api = ref.read(arenaApiClientProvider);
+    await NotificationService().setupFCM(
+      onTokenRefresh: (token) async {
+        try {
+          await api.updateFcmToken(token);
+        } catch (e) {
+          debugPrint('Failed to save FCM token: $e');
+        }
+      },
+    );
   }
 
   @override
@@ -40,10 +59,47 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(firebaseAuthProvider);
-    final isAuth = authState.value != null;
 
     return Scaffold(
-      body: isAuth ? _buildArenaHub() : _buildSignInScreen(),
+      body: authState.when(
+        loading: () => Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [ArenaTheme.background, ArenaTheme.surface],
+            ),
+          ),
+          child: const Center(
+            child: CircularProgressIndicator(color: ArenaTheme.primary),
+          ),
+        ),
+        error: (e, _) => Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [ArenaTheme.background, ArenaTheme.surface],
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, color: ArenaTheme.primary, size: 48),
+                const SizedBox(height: 16),
+                Text('Something went wrong', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 16)),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () => ref.invalidate(firebaseAuthProvider),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        data: (user) => user != null ? _buildArenaHub() : _buildSignInScreen(),
+      ),
     );
   }
 
@@ -53,7 +109,7 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF1a1a2e), Color(0xFF16213e), Color(0xFF0f3460)],
+          colors: [ArenaTheme.background, ArenaTheme.surface, Color(0xFF0f3460)],
         ),
       ),
       child: SafeArea(
@@ -63,7 +119,6 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Arena Logo
                 AnimatedBuilder(
                   animation: _pulseController,
                   builder: (context, child) {
@@ -78,11 +133,11 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: const LinearGradient(
-                        colors: [Color(0xFFe94560), Color(0xFFf97316)],
+                        colors: [ArenaTheme.primary, ArenaTheme.accent],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFe94560).withValues(alpha: 0.4),
+                          color: ArenaTheme.primary.withValues(alpha: 0.4),
                           blurRadius: 30,
                           spreadRadius: 5,
                         ),
@@ -115,7 +170,6 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 48),
-                // Google Sign In
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -137,7 +191,6 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Anonymous Sign In
                 TextButton(
                   onPressed: _signInAnonymously,
                   child: Text(
@@ -164,104 +217,133 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
+          colors: [ArenaTheme.background, ArenaTheme.surface],
         ),
       ),
       child: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Header with XP and profile
-            SliverToBoxAdapter(
-              child: userAsync.when(
-                data: (user) => _buildHeader(user),
-                loading: () => const SizedBox(
-                  height: 120,
-                  child: Center(child: CircularProgressIndicator(color: Colors.white)),
-                ),
-                error: (e, _) => _buildHeader(null),
-              ),
-            ),
-
-            // Game Mode Cards
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.85,
-                ),
-                delegate: SliverChildListDelegate([
-                  _buildModeCard(
-                    title: 'Scripture\nMemory',
-                    subtitle: '5 levels to memorize',
-                    icon: Icons.psychology_rounded,
-                    gradient: [const Color(0xFF667eea), const Color(0xFF764ba2)],
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const MemoryHomeScreen())),
+        child: userAsync.when(
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: ArenaTheme.primary),
+          ),
+          error: (e, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.cloud_off_rounded, color: ArenaTheme.primary, size: 56),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Failed to load profile',
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  _buildModeCard(
-                    title: 'Bible\nQuiz',
-                    subtitle: 'Solo challenge',
-                    icon: Icons.quiz_rounded,
-                    gradient: [const Color(0xFFf093fb), const Color(0xFFf5576c)],
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const QuizHomeScreen())),
+                  const SizedBox(height: 8),
+                  Text(
+                    '$e',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  _buildModeCard(
-                    title: 'Trivia\nBattle',
-                    subtitle: 'Challenge anyone',
-                    icon: Icons.sports_esports_rounded,
-                    gradient: [const Color(0xFF4facfe), const Color(0xFF00f2fe)],
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const BattleHomeScreen())),
-                  ),
-                  _buildModeCard(
-                    title: 'Sermon\nNotes',
-                    subtitle: 'Test your memory',
-                    icon: Icons.church_rounded,
-                    gradient: [const Color(0xFFfa709a), const Color(0xFFfee140)],
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const SermonHomeScreen())),
-                  ),
-                ]),
-              ),
-            ),
-
-            // Quick Actions
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverToBoxAdapter(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildQuickAction(
-                        icon: Icons.leaderboard_rounded,
-                        label: 'Leaderboard',
-                        color: const Color(0xFFf59e0b),
-                        onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const LeaderboardScreen())),
-                      ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () => ref.read(arenaUserProvider.notifier).refresh(),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ArenaTheme.primary,
+                      foregroundColor: Colors.white,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildQuickAction(
-                        icon: Icons.person_rounded,
-                        label: 'My Profile',
-                        color: const Color(0xFF10b981),
-                        onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const ProfileScreen())),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          ],
+          ),
+          data: (user) => _buildHubContent(user),
         ),
       ),
+    );
+  }
+
+  Widget _buildHubContent(ArenaUser? user) {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(child: _buildHeader(user)),
+        SliverPadding(
+          padding: const EdgeInsets.all(16),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 0.85,
+            ),
+            delegate: SliverChildListDelegate([
+              _buildModeCard(
+                title: 'Scripture\nMemory',
+                subtitle: '5 levels to memorize',
+                icon: Icons.psychology_rounded,
+                gradient: [ArenaTheme.memoryPurple, ArenaTheme.memoryPurpleDark],
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const MemoryHomeScreen())),
+              ),
+              _buildModeCard(
+                title: 'Bible\nQuiz',
+                subtitle: 'Solo challenge',
+                icon: Icons.quiz_rounded,
+                gradient: [ArenaTheme.battlePink, ArenaTheme.battleRed],
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const QuizHomeScreen())),
+              ),
+              _buildModeCard(
+                title: 'Trivia\nBattle',
+                subtitle: 'Challenge anyone',
+                icon: Icons.sports_esports_rounded,
+                gradient: [ArenaTheme.quizBlue, ArenaTheme.quizCyan],
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const BattleHomeScreen())),
+              ),
+              _buildModeCard(
+                title: 'Sermon\nNotes',
+                subtitle: 'Test your memory',
+                icon: Icons.church_rounded,
+                gradient: [ArenaTheme.sermonPink, ArenaTheme.sermonYellow],
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SermonHomeScreen())),
+              ),
+            ]),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverToBoxAdapter(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildQuickAction(
+                    icon: Icons.leaderboard_rounded,
+                    label: 'Leaderboard',
+                    color: ArenaTheme.xpGold,
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const LeaderboardScreen())),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildQuickAction(
+                    icon: Icons.person_rounded,
+                    label: 'My Profile',
+                    color: ArenaTheme.success,
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const ProfileScreen())),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+      ],
     );
   }
 
@@ -272,10 +354,9 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
         children: [
           Row(
             children: [
-              // Avatar
               CircleAvatar(
                 radius: 24,
-                backgroundColor: const Color(0xFFe94560),
+                backgroundColor: ArenaTheme.primary,
                 backgroundImage: user?.photoUrl != null ? NetworkImage(user!.photoUrl!) : null,
                 child: user?.photoUrl == null
                     ? const Icon(Icons.person, color: Colors.white)
@@ -321,7 +402,6 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
                   ],
                 ),
               ),
-              // Battle wins badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
@@ -331,7 +411,7 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.emoji_events_rounded, color: Color(0xFFf59e0b), size: 18),
+                    const Icon(Icons.emoji_events_rounded, color: ArenaTheme.xpGold, size: 18),
                     const SizedBox(width: 4),
                     Text(
                       '${user?.battleWins ?? 0}',
@@ -347,14 +427,13 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
             ],
           ),
           const SizedBox(height: 12),
-          // XP Progress Bar
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: (user?.levelProgress ?? 0).clamp(0.0, 1.0),
               minHeight: 6,
               backgroundColor: Colors.white.withValues(alpha: 0.1),
-              valueColor: const AlwaysStoppedAnimation(Color(0xFFe94560)),
+              valueColor: const AlwaysStoppedAnimation(ArenaTheme.primary),
             ),
           ),
           const SizedBox(height: 4),
@@ -480,11 +559,11 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
 
   Color _getLevelColor(String level) {
     switch (level) {
-      case 'Disciple': return const Color(0xFF3b82f6);
-      case 'Elder': return const Color(0xFF8b5cf6);
-      case 'Apostle': return const Color(0xFFf59e0b);
-      case 'Living Word': return const Color(0xFFe94560);
-      default: return const Color(0xFF6b7280);
+      case 'Disciple': return ArenaTheme.discipleBlue;
+      case 'Elder': return ArenaTheme.elderPurple;
+      case 'Apostle': return ArenaTheme.xpGold;
+      case 'Living Word': return ArenaTheme.primary;
+      default: return ArenaTheme.neutralGray;
     }
   }
 
@@ -502,11 +581,11 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
 
       await fb.FirebaseAuth.instance.signInWithCredential(credential);
 
-      // Register on backend
       if (mounted) {
         await ref.read(arenaUserProvider.notifier).register(
               displayName: account.displayName,
             );
+        _initPushNotifications();
       }
     } catch (e) {
       debugPrint('Google sign-in error: $e');
@@ -525,6 +604,7 @@ class _ArenaHomeScreenState extends ConsumerState<ArenaHomeScreen>
         await ref.read(arenaUserProvider.notifier).register(
               displayName: 'Guest Player',
             );
+        _initPushNotifications();
       }
     } catch (e) {
       debugPrint('Anonymous sign-in error: $e');

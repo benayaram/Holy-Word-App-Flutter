@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/arena_providers.dart';
+import '../arena_theme.dart';
 
 class TournamentScreen extends ConsumerStatefulWidget {
   final String? tournamentId;
@@ -29,8 +30,10 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
     try {
       final api = ref.read(arenaApiClientProvider);
       final res = await api.getTournament(widget.tournamentId!);
+      if (!mounted) return;
       setState(() { _tournament = res['tournament']; _loading = false; });
     } catch (e) {
+      if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });
     }
   }
@@ -38,14 +41,14 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a2e),
+      backgroundColor: ArenaTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         title: Text(_tournament?['name'] ?? 'Tournament',
             style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFf59e0b)))
+          ? const Center(child: CircularProgressIndicator(color: ArenaTheme.xpGold))
           : _error != null
               ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
               : _tournament == null
@@ -62,7 +65,7 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.emoji_events_rounded, color: Color(0xFFf59e0b), size: 80),
+          const Icon(Icons.emoji_events_rounded, color: ArenaTheme.xpGold, size: 80),
           const SizedBox(height: 24),
           const Text('Church Tournament',
               style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
@@ -76,8 +79,8 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
             textCapitalization: TextCapitalization.characters,
             decoration: InputDecoration(
               hintText: 'ENTER CODE',
-              hintStyle: TextStyle(color: Colors.white.withOpacity(0.2), letterSpacing: 4),
-              filled: true, fillColor: Colors.white.withOpacity(0.08),
+              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2), letterSpacing: 4),
+              filled: true, fillColor: Colors.white.withValues(alpha: 0.08),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
             ),
           ),
@@ -90,6 +93,7 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
                 try {
                   final api = ref.read(arenaApiClientProvider);
                   final res = await api.joinTournament(codeCtrl.text.trim());
+                  if (!mounted) return;
                   setState(() { _tournament = res['tournament']; });
                 } catch (e) {
                   if (mounted) {
@@ -99,7 +103,7 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3b82f6),
+                backgroundColor: ArenaTheme.discipleBlue,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
               child: const Text('Join Tournament',
                   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
@@ -109,10 +113,10 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
 
           // Divider
           Row(children: [
-            Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
+            Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.2))),
             Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text('or', style: TextStyle(color: Colors.white.withOpacity(0.4)))),
-            Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
+                child: Text('or', style: TextStyle(color: Colors.white.withValues(alpha: 0.4)))),
+            Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.2))),
           ]),
           const SizedBox(height: 24),
 
@@ -121,11 +125,11 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
             width: double.infinity, height: 52,
             child: OutlinedButton.icon(
               onPressed: () => _showCreateDialog(),
-              icon: const Icon(Icons.add, color: Color(0xFFf59e0b)),
+              icon: const Icon(Icons.add, color: ArenaTheme.xpGold),
               label: const Text('Create Tournament (Pastors)',
-                  style: TextStyle(color: Color(0xFFf59e0b), fontWeight: FontWeight.w600)),
+                  style: TextStyle(color: ArenaTheme.xpGold, fontWeight: FontWeight.w600)),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFFf59e0b)),
+                side: const BorderSide(color: ArenaTheme.xpGold),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
             ),
           ),
@@ -150,23 +154,23 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [const Color(0xFFf59e0b).withOpacity(0.15), Colors.transparent]),
+                colors: [ArenaTheme.xpGold.withValues(alpha: 0.15), Colors.transparent]),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFf59e0b).withOpacity(0.3)),
+              border: Border.all(color: ArenaTheme.xpGold.withValues(alpha: 0.3)),
             ),
             child: Row(children: [
-              const Icon(Icons.emoji_events_rounded, color: Color(0xFFf59e0b), size: 36),
+              const Icon(Icons.emoji_events_rounded, color: ArenaTheme.xpGold, size: 36),
               const SizedBox(width: 14),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('Code: $code', style: const TextStyle(
-                    color: Color(0xFFf59e0b), fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 3)),
+                    color: ArenaTheme.xpGold, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 3)),
                 Text('${participants.length} players • ${status.toUpperCase()}',
-                    style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13)),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13)),
               ])),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _statusColor(status).withOpacity(0.2),
+                  color: _statusColor(status).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8)),
                 child: Text(status.toUpperCase(),
                     style: TextStyle(color: _statusColor(status), fontSize: 11, fontWeight: FontWeight.bold)),
@@ -183,9 +187,9 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
                 const Icon(Icons.people_rounded, color: Colors.white38, size: 48),
                 const SizedBox(height: 12),
                 Text('Waiting for more players...',
-                    style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 16)),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 16)),
                 Text('Share code $code to invite players',
-                    style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 13)),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 13)),
               ]),
             ))
           else
@@ -221,19 +225,19 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
+        color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(children: [
         Expanded(child: _playerTile(p1, p1Win)),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xFFe94560).withOpacity(0.2),
+            color: ArenaTheme.primary.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(6)),
           child: const Text('VS', style: TextStyle(
-              color: Color(0xFFe94560), fontSize: 11, fontWeight: FontWeight.w900)),
+              color: ArenaTheme.primary, fontSize: 11, fontWeight: FontWeight.w900)),
         ),
         Expanded(child: _playerTile(p2, p2Win)),
       ]),
@@ -245,13 +249,13 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(children: [
         CircleAvatar(radius: 16, backgroundColor: isWinner
-            ? const Color(0xFFf59e0b) : Colors.white.withOpacity(0.1),
+            ? ArenaTheme.xpGold : Colors.white.withValues(alpha: 0.1),
           child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
               style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold))),
         const SizedBox(height: 4),
         Text(name.length > 8 ? '${name.substring(0, 8)}...' : name,
             style: TextStyle(
-              color: isWinner ? const Color(0xFFf59e0b) : Colors.white,
+              color: isWinner ? ArenaTheme.xpGold : Colors.white,
               fontSize: 12, fontWeight: isWinner ? FontWeight.bold : FontWeight.normal)),
         if (isWinner)
           const Text('🏆', style: TextStyle(fontSize: 14)),
@@ -261,9 +265,9 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'registration': return const Color(0xFF3b82f6);
-      case 'active': return const Color(0xFF10b981);
-      case 'completed': return const Color(0xFFf59e0b);
+      case 'registration': return ArenaTheme.discipleBlue;
+      case 'active': return ArenaTheme.success;
+      case 'completed': return ArenaTheme.xpGold;
       default: return Colors.white54;
     }
   }
@@ -271,18 +275,18 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
   void _showCreateDialog() {
     final nameCtrl = TextEditingController();
     showDialog(context: context, builder: (ctx) => AlertDialog(
-      backgroundColor: const Color(0xFF16213e),
+      backgroundColor: ArenaTheme.surface,
       title: const Text('Create Tournament', style: TextStyle(color: Colors.white)),
       content: TextField(
         controller: nameCtrl, style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           hintText: 'Tournament Name',
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-          filled: true, fillColor: Colors.white.withOpacity(0.08),
+          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+          filled: true, fillColor: Colors.white.withValues(alpha: 0.08),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
         ElevatedButton(
           onPressed: () async {
             if (nameCtrl.text.isEmpty) return;
@@ -290,8 +294,10 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
               final api = ref.read(arenaApiClientProvider);
               final user = ref.read(arenaUserProvider).value;
               final res = await api.createTournament(nameCtrl.text, user?.churchId ?? '');
-              Navigator.pop(ctx);
-              setState(() { _tournament = res['tournament']; });
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (mounted) {
+                setState(() { _tournament = res['tournament']; });
+              }
             } catch (e) {
               if (ctx.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -299,8 +305,8 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
               }
             }
           },
-          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFf59e0b)),
-          child: const Text('Create', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(backgroundColor: ArenaTheme.xpGold),
+          child: const Text('Create', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         ),
       ],
     ));

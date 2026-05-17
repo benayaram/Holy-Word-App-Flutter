@@ -4,6 +4,7 @@ const router = express.Router();
 const { getDB } = require('../../lib/db');
 const { authMiddleware } = require('../../lib/auth');
 const { generateQuestions } = require('../../lib/ai');
+const { calcLevel } = require('../../lib/levels');
 const { ObjectId } = require('mongodb');
 
 // GET /api/questions - Fetch random quiz questions (no answers for battle)
@@ -164,12 +165,6 @@ router.get('/categories', authMiddleware, async (req, res) => {
   }
 });
 
-function calcLevel(xp, verses) {
-  if (verses >= 365) return 'Living Word';
-  if (xp >= 5000) return 'Apostle';
-  if (xp >= 2000) return 'Elder';
-  if (xp >= 500) return 'Disciple';
-  return 'Seeker';
-}
+
 
 module.exports = router;

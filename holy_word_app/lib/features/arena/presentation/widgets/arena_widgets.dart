@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../arena_theme.dart';
 
 /// Animated XP progress bar with level label
 class XpProgressBar extends StatelessWidget {
@@ -30,8 +31,8 @@ class XpProgressBar extends StatelessWidget {
             builder: (ctx, val, _) => LinearProgressIndicator(
               value: val,
               minHeight: 6,
-              backgroundColor: Colors.white.withOpacity(0.1),
-              valueColor: const AlwaysStoppedAnimation(Color(0xFFe94560)),
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              valueColor: const AlwaysStoppedAnimation(ArenaTheme.primary),
             ),
           ),
         ),
@@ -40,9 +41,9 @@ class XpProgressBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(currentLevel,
-                style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11)),
             Text('${nextLevelXp - currentXp} XP to $nextLevel',
-                style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11)),
           ],
         ),
       ],
@@ -69,10 +70,10 @@ class CountdownTimer extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isUrgent
-            ? const Color(0xFFe94560).withOpacity(0.3)
-            : Colors.white.withOpacity(0.1),
+            ? ArenaTheme.primary.withValues(alpha: 0.3)
+            : Colors.white.withValues(alpha: 0.1),
         border: Border.all(
-          color: isUrgent ? const Color(0xFFe94560) : Colors.white24,
+          color: isUrgent ? ArenaTheme.primary : Colors.white24,
           width: 2,
         ),
       ),
@@ -80,7 +81,7 @@ class CountdownTimer extends StatelessWidget {
         child: Text(
           '$seconds',
           style: TextStyle(
-            color: isUrgent ? const Color(0xFFe94560) : Colors.white,
+            color: isUrgent ? ArenaTheme.primary : Colors.white,
             fontSize: 18, fontWeight: FontWeight.bold,
           ),
         ),
@@ -107,9 +108,9 @@ class ScoreIndicator extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -121,7 +122,7 @@ class ScoreIndicator extends StatelessWidget {
               style: TextStyle(color: color, fontSize: 24, fontWeight: FontWeight.w900),
             ),
           ),
-          Text(label, style: TextStyle(color: color.withOpacity(0.7), fontSize: 11)),
+          Text(label, style: TextStyle(color: color.withValues(alpha: 0.7), fontSize: 11)),
         ],
       ),
     );
@@ -148,11 +149,11 @@ class LevelBadge extends StatelessWidget {
 
   Color _getColor(String level) {
     switch (level) {
-      case 'Disciple': return const Color(0xFF3b82f6);
-      case 'Elder': return const Color(0xFF8b5cf6);
-      case 'Apostle': return const Color(0xFFf59e0b);
-      case 'Living Word': return const Color(0xFFe94560);
-      default: return const Color(0xFF6b7280);
+      case 'Disciple': return ArenaTheme.discipleBlue;
+      case 'Elder': return ArenaTheme.elderPurple;
+      case 'Apostle': return ArenaTheme.xpGold;
+      case 'Living Word': return ArenaTheme.primary;
+      default: return ArenaTheme.neutralGray;
     }
   }
 }
@@ -184,7 +185,7 @@ class ArenaGradientCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft, end: Alignment.bottomRight, colors: gradient),
           boxShadow: [BoxShadow(
-            color: gradient[0].withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 6))],
+            color: gradient[0].withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 6))],
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -195,7 +196,7 @@ class ArenaGradientCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                  color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
                 child: Icon(icon, color: Colors.white, size: 28),
               ),
               Column(
@@ -205,7 +206,7 @@ class ArenaGradientCard extends StatelessWidget {
                     color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800, height: 1.2)),
                   const SizedBox(height: 4),
                   Text(subtitle, style: TextStyle(
-                    color: Colors.white.withOpacity(0.8), fontSize: 12)),
+                    color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
                 ],
               ),
             ],
@@ -242,7 +243,7 @@ class ArenaEmptyState extends StatelessWidget {
           Text(title, style: const TextStyle(
             color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text(subtitle, style: TextStyle(color: Colors.white.withOpacity(0.6)),
+          Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
               textAlign: TextAlign.center),
         ],
       ),

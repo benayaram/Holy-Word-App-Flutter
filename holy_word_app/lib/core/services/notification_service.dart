@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../features/bible/presentation/reading_plans/plan_detail_screen.dart';
 import '../../main.dart'; // To access navigatorKey
@@ -52,8 +53,12 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   bool _isInitialized = false;
+
+  // Callback for handling notification taps from Arena or other modules
+  void Function(Map<String, dynamic> data)? onNotificationTap;
 
   static const String _prefRemindersKey = 'saved_reminders_list';
 
@@ -137,9 +142,87 @@ class NotificationService {
         description: 'Reminders to read your daily plan',
         importance: Importance.max,
       ));
+
+      await androidImplementation
+          .createNotificationChannel(const AndroidNotificationChannel(
+        'bible_arena',
+        'Bible Arena',
+        description: 'Battle challenges, tournament updates, and sermon quizzes',
+        importance: Importance.high,
+      ));
     }
 
     _isInitialized = true;
+  }
+
+  bool _fcmInitialized = false;
+
+  Future<void> setupFCM({required Future<void> Function(String token) onTokenRefresh}) async {
+    if (_fcmInitialized) return;
+    try {
+      final settings = await _messaging.requestPermission(
+        alert: true, badge: true, sound: true, provisional: false,
+      );
+      debugPrint('FCM permission: ${settings.authorizationStatus}');
+
+      final token = await _messaging.getToken();
+      if (token != null) {
+        try {
+          await onTokenRefresh(token);
+          debugPrint('FCM token registered: ${token.substring(0, 20)}...');
+        } catch (e) {
+          debugPrint('FCM token registration failed: $e');
+        }
+      }
+      _messaging.onTokenRefresh.listen((newToken) async {
+        try {
+          await onTokenRefresh(newToken);
+        } catch (_) {}
+      });
+
+      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageTap);
+
+      final initialMessage = await _messaging.getInitialMessage();
+      if (initialMessage != null) {
+        _handleMessageTap(initialMessage);
+      }
+    } catch (e) {
+      debugPrint('FCM setup failed: $e');
+    }
+
+    _fcmInitialized = true;
+  }
+
+  void _handleForegroundMessage(RemoteMessage message) {
+    final notification = message.notification;
+    if (notification == null) return;
+
+    _notificationsPlugin.show(
+      notification.hashCode,
+      notification.title ?? 'Bible Arena',
+      notification.body ?? '',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'bible_arena', 'Bible Arena',
+          channelDescription: 'Battle challenges and updates',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/launcher_icon',
+          color: Color(0xFFe94560),
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true, presentBadge: true, presentSound: true,
+        ),
+      ),
+      payload: message.data['type'] ?? '',
+    );
+  }
+
+  void _handleMessageTap(RemoteMessage message) {
+    if (onNotificationTap != null) {
+      onNotificationTap!(message.data);
+    }
   }
 
   Future<bool> requestPermissions() async {

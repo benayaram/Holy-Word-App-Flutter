@@ -2,12 +2,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/arena_providers.dart';
+import '../../../../core/providers/language_provider.dart';
+import '../arena_theme.dart';
 import 'battle_result_screen.dart';
 
 class BattlePlayScreen extends ConsumerStatefulWidget {
   final String battleId;
-  final Map<String, dynamic> firstQuestion;
-  const BattlePlayScreen({super.key, required this.battleId, required this.firstQuestion});
+  const BattlePlayScreen({super.key, required this.battleId});
 
   @override
   ConsumerState<BattlePlayScreen> createState() => _BattlePlayScreenState();
@@ -27,14 +28,11 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
   bool _opponentAnswered = false;
   int _questionStartTime = 0;
   StreamSubscription? _wsSub;
+  bool _waitingForQuestion = true;
 
   @override
   void initState() {
     super.initState();
-    _currentQuestion = widget.firstQuestion;
-    _currentIndex = widget.firstQuestion['questionIndex'] ?? 0;
-    _totalQuestions = widget.firstQuestion['totalQuestions'] ?? 10;
-    _startTimer(widget.firstQuestion['timeLimit'] ?? 15000);
     _listenToWebSocket();
   }
 
@@ -48,76 +46,71 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
   void _listenToWebSocket() {
     final ws = ref.read(arenaWsClientProvider);
     _wsSub = ws.messages.listen((msg) {
+      if (!mounted) return;
+
       final event = msg['event'];
       final data = msg['data'] ?? {};
 
-      if (!mounted) return;
-
       switch (event) {
         case 'battle:answer_result':
+          if (!mounted) return;
           setState(() {
             _correctAnswer = data['correctAnswer'];
-            final scores = data['scores'] as Map<String, dynamic>? ?? {};
-            final user = ref.read(arenaUserProvider).value;
-            if (user != null) {
-              _myScore = scores[user.firebaseUid] ?? _myScore;
-              scores.forEach((k, v) {
-                if (k != user.firebaseUid) _opponentScore = v;
-              });
-            }
+            _updateScores(data['scores']);
           });
           break;
         case 'battle:opponent_answered':
+          if (!mounted) return;
           setState(() => _opponentAnswered = true);
           break;
         case 'battle:score_update':
-          final scores = data['scores'] as Map<String, dynamic>? ?? {};
-          final user = ref.read(arenaUserProvider).value;
-          if (user != null) {
-            setState(() {
-              _myScore = scores[user.firebaseUid] ?? _myScore;
-              scores.forEach((k, v) {
-                if (k != user.firebaseUid) _opponentScore = v;
-              });
-            });
-          }
+          if (!mounted) return;
+          setState(() => _updateScores(data['scores']));
           break;
         case 'battle:question':
+          if (!mounted) return;
           setState(() {
             _currentQuestion = data;
             _currentIndex = data['questionIndex'] ?? _currentIndex + 1;
+            _totalQuestions = data['totalQuestions'] ?? _totalQuestions;
             _answered = false;
             _selectedAnswer = null;
             _correctAnswer = null;
             _opponentAnswered = false;
+            _waitingForQuestion = false;
           });
           _startTimer(data['timeLimit'] ?? 15000);
           break;
         case 'battle:time_up':
+          if (!mounted) return;
           setState(() {
             _correctAnswer = data['correctAnswer'];
-            final scores = data['scores'] as Map<String, dynamic>? ?? {};
-            final user = ref.read(arenaUserProvider).value;
-            if (user != null) {
-              _myScore = scores[user.firebaseUid] ?? _myScore;
-              scores.forEach((k, v) {
-                if (k != user.firebaseUid) _opponentScore = v;
-              });
-            }
+            _updateScores(data['scores']);
           });
           break;
         case 'battle:complete':
           _timer?.cancel();
-          if (mounted) {
-            Navigator.pushReplacement(context, MaterialPageRoute(
-              builder: (_) => BattleResultScreen(resultData: data)));
-          }
+          _wsSub?.cancel();
+          if (!mounted) return;
+          Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (_) => BattleResultScreen(resultData: data)));
           break;
         case 'battle:player_disconnected':
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Opponent disconnected!')));
           break;
       }
+    });
+  }
+
+  void _updateScores(Map<String, dynamic>? scores) {
+    if (scores == null) return;
+    final user = ref.read(arenaUserProvider).value;
+    if (user == null) return;
+    _myScore = scores[user.firebaseUid] ?? _myScore;
+    scores.forEach((k, v) {
+      if (k != user.firebaseUid) _opponentScore = v as int;
     });
   }
 
@@ -126,12 +119,11 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
     _timeLeft = (timeLimitMs / 1000).ceil();
     _questionStartTime = DateTime.now().millisecondsSinceEpoch;
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) {
-        setState(() {
+      if (!mounted) return;
+      setState(() {
         _timeLeft--;
         if (_timeLeft <= 0) { _timer?.cancel(); }
       });
-      }
     });
   }
 
@@ -146,7 +138,23 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const isTelugu = false;
+    if (_waitingForQuestion) {
+      return Scaffold(
+        backgroundColor: ArenaTheme.background,
+        body: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: ArenaTheme.primary),
+              SizedBox(height: 16),
+              Text('Waiting for first question...', style: TextStyle(color: Colors.white70)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final isTelugu = _isTeluguLocale();
     final question = isTelugu
         ? (_currentQuestion['questionTe'] ?? _currentQuestion['questionEn'] ?? '')
         : (_currentQuestion['questionEn'] ?? '');
@@ -155,7 +163,7 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
             : (_currentQuestion['options'] ?? []));
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a2e),
+      backgroundColor: ArenaTheme.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -163,12 +171,12 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.06),
-                border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.1))),
+                color: Colors.white.withValues(alpha: 0.06),
+                border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
               ),
               child: Row(
                 children: [
-                  _scoreChip('You', _myScore, const Color(0xFF4facfe)),
+                  _scoreChip('You', _myScore, ArenaTheme.quizBlue),
                   Expanded(
                     child: Column(children: [
                       Text('Q${_currentIndex + 1}/$_totalQuestions',
@@ -177,7 +185,7 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
                           color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900)),
                     ]),
                   ),
-                  _scoreChip('Opponent', _opponentScore, const Color(0xFFe94560)),
+                  _scoreChip('Opponent', _opponentScore, ArenaTheme.primary),
                 ],
               ),
             ),
@@ -193,15 +201,15 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: _timeLeft <= 5
-                          ? const Color(0xFFe94560).withOpacity(0.3)
-                          : Colors.white.withOpacity(0.1),
+                          ? ArenaTheme.primary.withValues(alpha: 0.3)
+                          : Colors.white.withValues(alpha: 0.1),
                       border: Border.all(
-                        color: _timeLeft <= 5 ? const Color(0xFFe94560) : Colors.white24,
+                        color: _timeLeft <= 5 ? ArenaTheme.primary : Colors.white24,
                         width: 3),
                     ),
                     child: Center(child: Text('$_timeLeft',
                         style: TextStyle(
-                          color: _timeLeft <= 5 ? const Color(0xFFe94560) : Colors.white,
+                          color: _timeLeft <= 5 ? ArenaTheme.primary : Colors.white,
                           fontSize: 22, fontWeight: FontWeight.bold))),
                   ),
                   if (_opponentAnswered) ...[
@@ -209,10 +217,10 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFf59e0b).withOpacity(0.2),
+                        color: ArenaTheme.xpGold.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8)),
                       child: const Text('⚡ Opponent answered',
-                          style: TextStyle(color: Color(0xFFf59e0b), fontSize: 12)),
+                          style: TextStyle(color: ArenaTheme.xpGold, fontSize: 12)),
                     ),
                   ],
                 ],
@@ -243,16 +251,16 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
                     final isCorrect = _correctAnswer == idx;
                     final showResult = _correctAnswer != null;
 
-                    Color bg = Colors.white.withOpacity(0.08);
-                    Color border = Colors.white.withOpacity(0.15);
+                    Color bg = Colors.white.withValues(alpha: 0.08);
+                    Color border = Colors.white.withValues(alpha: 0.15);
 
                     if (showResult) {
                       if (isCorrect) {
-                        bg = const Color(0xFF10b981).withOpacity(0.2);
-                        border = const Color(0xFF10b981);
+                        bg = ArenaTheme.success.withValues(alpha: 0.2);
+                        border = ArenaTheme.success;
                       } else if (isSelected && !isCorrect) {
-                        bg = const Color(0xFFe94560).withOpacity(0.2);
-                        border = const Color(0xFFe94560);
+                        bg = ArenaTheme.primary.withValues(alpha: 0.2);
+                        border = ArenaTheme.primary;
                       }
                     }
 
@@ -272,10 +280,10 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: showResult && isCorrect
-                                    ? const Color(0xFF10b981)
+                                    ? ArenaTheme.success
                                     : showResult && isSelected
-                                        ? const Color(0xFFe94560)
-                                        : Colors.white.withOpacity(0.15)),
+                                        ? ArenaTheme.primary
+                                        : Colors.white.withValues(alpha: 0.15)),
                               child: Center(child: showResult && isCorrect
                                   ? const Icon(Icons.check, color: Colors.white, size: 18)
                                   : showResult && isSelected
@@ -300,15 +308,23 @@ class _BattlePlayScreenState extends ConsumerState<BattlePlayScreen> {
     );
   }
 
+  bool _isTeluguLocale() {
+    try {
+      return ref.read(languageProvider) == 'telugu';
+    } catch (_) {
+      return false;
+    }
+  }
+
   Widget _scoreChip(String label, int score, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3))),
+        color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3))),
       child: Column(children: [
         Text('$score', style: TextStyle(color: color, fontSize: 24, fontWeight: FontWeight.w900)),
-        Text(label, style: TextStyle(color: color.withOpacity(0.7), fontSize: 11)),
+        Text(label, style: TextStyle(color: color.withValues(alpha: 0.7), fontSize: 11)),
       ]),
     );
   }

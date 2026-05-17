@@ -149,6 +149,10 @@ router.post('/matchmake', authMiddleware, async (req, res) => {
     const questions = await db.collection('questions')
       .aggregate([{ $match: query }, { $sample: { size: 10 } }]).toArray();
 
+    if (questions.length < 5) {
+      return res.status(400).json({ error: 'Not enough questions available for this difficulty' });
+    }
+
     const inviteCode = uuidv4().substring(0, 8).toUpperCase();
     const battle = {
       type: 'random', status: 'waiting', player1Id: req.user.uid, player2Id: null,

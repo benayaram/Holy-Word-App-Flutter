@@ -111,22 +111,25 @@ router.post('/:id/advance', authMiddleware, async (req, res) => {
   try {
     const db = getDB();
     const { matchId, winnerId } = req.body;
+    if (!matchId || !winnerId) {
+      return res.status(400).json({ error: 'matchId and winnerId are required' });
+    }
+
+    // Atomically set the winner on the specific match
+    const updateResult = await db.collection('tournaments').updateOne(
+      { _id: new ObjectId(req.params.id), 'brackets.matches.matchId': matchId },
+      { $set: { 'brackets.$[round].matches.$[match].winnerId': winnerId } },
+      { arrayFilters: [{ 'round.matches.matchId': matchId }, { 'match.matchId': matchId }] }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ error: 'Tournament or match not found' });
+    }
+
+    // Re-fetch to check if round is complete
     const tournament = await db.collection('tournaments').findOne({ _id: new ObjectId(req.params.id) });
     if (!tournament) return res.status(404).json({ error: 'Tournament not found' });
 
-    // Find and update the match
-    let updated = false;
-    for (const round of tournament.brackets) {
-      for (const match of round.matches) {
-        if (match.matchId === matchId) {
-          match.winnerId = winnerId;
-          updated = true;
-        }
-      }
-    }
-    if (!updated) return res.status(404).json({ error: 'Match not found' });
-
-    // Check if current round is complete
     const currentRound = tournament.brackets[tournament.brackets.length - 1];
     const allComplete = currentRound.matches.every(m => m.winnerId);
 
@@ -134,10 +137,11 @@ router.post('/:id/advance', authMiddleware, async (req, res) => {
       const winners = currentRound.matches.map(m => m.winnerId).filter(Boolean);
 
       if (winners.length === 1) {
-        // Tournament complete!
-        tournament.winnerId = winners[0];
-        tournament.status = 'completed';
-        tournament.completedAt = new Date();
+        // Tournament complete
+        await db.collection('tournaments').updateOne(
+          { _id: tournament._id },
+          { $set: { winnerId: winners[0], status: 'completed', completedAt: new Date() } }
+        );
 
         // Award XP to winner
         await db.collection('users').updateOne(
@@ -157,20 +161,16 @@ router.post('/:id/advance', authMiddleware, async (req, res) => {
           });
         }
         const nextRoundNum = tournament.brackets.length + 1;
-        tournament.brackets.push({
-          round: nextRoundNum,
-          roundName: getRoundName(tournament.participants.length, nextRoundNum),
-          matches: nextMatches,
-        });
+        await db.collection('tournaments').updateOne(
+          { _id: tournament._id },
+          { $push: { brackets: { round: nextRoundNum, roundName: getRoundName(tournament.participants.length, nextRoundNum), matches: nextMatches } } }
+        );
       }
     }
 
-    await db.collection('tournaments').updateOne(
-      { _id: tournament._id },
-      { $set: { brackets: tournament.brackets, status: tournament.status, winnerId: tournament.winnerId, completedAt: tournament.completedAt } }
-    );
-
-    return res.json({ brackets: tournament.brackets, status: tournament.status, winnerId: tournament.winnerId });
+    // Return updated state
+    const updated = await db.collection('tournaments').findOne({ _id: new ObjectId(req.params.id) });
+    return res.json({ brackets: updated.brackets, status: updated.status, winnerId: updated.winnerId });
   } catch (err) {
     return res.status(500).json({ error: 'Failed to advance tournament' });
   }

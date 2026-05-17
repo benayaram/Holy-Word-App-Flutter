@@ -4,27 +4,32 @@ import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:holy_word_app/core/env_config.dart';
 
-/// WebSocket client for real-time Bible Trivia Battles
+/// WebSocket client for real-time Bible Trivia Battles.
+/// Authenticates using Firebase ID tokens.
 class ArenaWebSocketClient {
   WebSocketChannel? _channel;
   final _messageController = StreamController<Map<String, dynamic>>.broadcast();
   Timer? _reconnectTimer;
-  String? _userId;
+  String? _authToken;
   bool _isConnected = false;
   int _reconnectAttempts = 0;
   static const int _maxReconnectAttempts = 5;
+  bool _disposed = false;
 
   Stream<Map<String, dynamic>> get messages => _messageController.stream;
   bool get isConnected => _isConnected;
 
-  /// Connect to WebSocket server
-  Future<void> connect(String userId) async {
-    _userId = userId;
+  /// Connect to WebSocket server using a Firebase ID token
+  Future<void> connect(String idToken) async {
+    _authToken = idToken;
     _reconnectAttempts = 0;
+    _disposed = false;
     await _doConnect();
   }
 
   Future<void> _doConnect() async {
+    if (_disposed) return;
+
     try {
       const wsUrl = EnvConfig.arenaWsUrl;
       debugPrint('WS: Connecting to $wsUrl');
@@ -38,11 +43,13 @@ class ArenaWebSocketClient {
             debugPrint('WS IN: ${msg['event']}');
             _messageController.add(msg);
 
-            // Handle auth success
             if (msg['event'] == 'auth:success') {
               _isConnected = true;
               _reconnectAttempts = 0;
               debugPrint('WS: Authenticated as ${msg['data']['userId']}');
+            } else if (msg['event'] == 'auth:error') {
+              _isConnected = false;
+              debugPrint('WS: Auth failed: ${msg['data']['message']}');
             }
           } catch (e) {
             debugPrint('WS: Failed to parse message: $e');
@@ -60,9 +67,9 @@ class ArenaWebSocketClient {
         },
       );
 
-      // Authenticate
-      if (_userId != null) {
-        send('auth', {'userId': _userId});
+      // Authenticate with Firebase ID token
+      if (_authToken != null) {
+        send('auth', {'token': _authToken});
       }
     } catch (e) {
       debugPrint('WS: Connection failed: $e');
@@ -74,7 +81,7 @@ class ArenaWebSocketClient {
   /// Send a message through WebSocket
   void send(String event, Map<String, dynamic> data) {
     if (_channel == null) {
-      debugPrint('WS: Cannot send - not connected');
+      debugPrint('WS: Cannot send — not connected');
       return;
     }
 
@@ -105,17 +112,24 @@ class ArenaWebSocketClient {
 
   /// Listen for specific event type
   Stream<Map<String, dynamic>> on(String eventName) {
-    return messages.where((msg) => msg['event'] == eventName).map((msg) => msg['data'] ?? {});
+    return messages
+        .where((msg) => msg['event'] == eventName)
+        .map((msg) => msg['data'] ?? {});
   }
 
   void _scheduleReconnect() {
+    if (_disposed) return;
     if (_reconnectAttempts >= _maxReconnectAttempts) {
       debugPrint('WS: Max reconnect attempts reached');
+      _messageController.add({
+        'event': 'connection:failed',
+        'data': {'message': 'Unable to connect to server'},
+      });
       return;
     }
 
     _reconnectTimer?.cancel();
-    final delay = Duration(seconds: (_reconnectAttempts + 1) * 2); // Exponential backoff
+    final delay = Duration(seconds: (_reconnectAttempts + 1) * 2);
     debugPrint('WS: Reconnecting in ${delay.inSeconds}s (attempt ${_reconnectAttempts + 1})');
 
     _reconnectTimer = Timer(delay, () {
@@ -130,11 +144,12 @@ class ArenaWebSocketClient {
     _channel?.sink.close();
     _channel = null;
     _isConnected = false;
-    _userId = null;
+    _authToken = null;
     debugPrint('WS: Disconnected');
   }
 
   void dispose() {
+    _disposed = true;
     disconnect();
     _messageController.close();
   }

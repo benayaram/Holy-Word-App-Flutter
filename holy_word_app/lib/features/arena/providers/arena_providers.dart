@@ -46,17 +46,13 @@ class ArenaUserNotifier extends AsyncNotifier<ArenaUser?> {
     final user = authState.value;
     if (user == null) return null;
 
-    try {
-      final api = ref.read(arenaApiClientProvider);
-      final token = await user.getIdToken();
-      if (token != null) {
-        api.setAuthToken(token);
-      }
-      return await api.getProfile();
-    } catch (e) {
-      debugPrint('Failed to load arena user: $e');
-      return null;
+    final api = ref.read(arenaApiClientProvider);
+    final token = await user.getIdToken(true);
+    if (token == null) {
+      throw Exception('Failed to obtain authentication token');
     }
+    api.setAuthToken(token);
+    return await api.getProfile();
   }
 
   Future<void> refresh() async {
@@ -69,8 +65,9 @@ class ArenaUserNotifier extends AsyncNotifier<ArenaUser?> {
     final fbUser = fb.FirebaseAuth.instance.currentUser;
     if (fbUser == null) throw Exception('Not authenticated');
 
-    final token = await fbUser.getIdToken();
-    if (token != null) api.setAuthToken(token);
+    final token = await fbUser.getIdToken(true);
+    if (token == null) throw Exception('Failed to obtain authentication token');
+    api.setAuthToken(token);
 
     final user = await api.register(
       displayName: displayName ?? fbUser.displayName,
@@ -219,9 +216,14 @@ final leaderboardProvider = FutureProvider.family<List<LeaderboardEntry>, String
   (ref, type) async {
     final api = ref.read(arenaApiClientProvider);
     final user = ref.watch(arenaUserProvider).value;
+    // Guard: don't send null churchId for church leaderboard
+    final churchId = (type == 'church') ? user?.churchId : null;
+    if (type == 'church' && churchId == null) {
+      return [];
+    }
     return api.getLeaderboard(
       type: type,
-      churchId: type == 'church' ? user?.churchId : null,
+      churchId: churchId,
     );
   },
 );

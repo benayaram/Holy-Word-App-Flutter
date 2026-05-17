@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -6,10 +7,12 @@ import 'models/arena_user.dart';
 import 'models/quiz_question.dart';
 import 'models/battle.dart';
 
-/// HTTP API Client for all Arena backend endpoints
+/// HTTP API Client for all Arena backend endpoints.
+/// All requests enforce a 15-second timeout.
 class ArenaApiClient {
   final String baseUrl;
   String? _authToken;
+  static const _timeout = Duration(seconds: 15);
 
   ArenaApiClient({String? baseUrl}) : baseUrl = baseUrl ?? EnvConfig.arenaApiUrl;
 
@@ -204,21 +207,33 @@ class ArenaApiClient {
   Future<Map<String, dynamic>> _get(String path, [Map<String, String>? query]) async {
     final uri = Uri.parse('$baseUrl$path').replace(queryParameters: query);
     debugPrint('GET $uri');
-    final res = await http.get(uri, headers: _headers);
-    return _handleResponse(res);
+    try {
+      final res = await http.get(uri, headers: _headers).timeout(_timeout);
+      return _handleResponse(res);
+    } on TimeoutException {
+      throw ApiException(statusCode: 408, message: 'Request timed out. Check your internet connection.');
+    }
   }
 
   Future<Map<String, dynamic>> _post(String path, Map<String, dynamic> body) async {
     final uri = Uri.parse('$baseUrl$path');
     debugPrint('POST $uri');
-    final res = await http.post(uri, headers: _headers, body: jsonEncode(body));
-    return _handleResponse(res);
+    try {
+      final res = await http.post(uri, headers: _headers, body: jsonEncode(body)).timeout(_timeout);
+      return _handleResponse(res);
+    } on TimeoutException {
+      throw ApiException(statusCode: 408, message: 'Request timed out. Check your internet connection.');
+    }
   }
 
   Future<Map<String, dynamic>> _put(String path, Map<String, dynamic> body) async {
     final uri = Uri.parse('$baseUrl$path');
-    final res = await http.put(uri, headers: _headers, body: jsonEncode(body));
-    return _handleResponse(res);
+    try {
+      final res = await http.put(uri, headers: _headers, body: jsonEncode(body)).timeout(_timeout);
+      return _handleResponse(res);
+    } on TimeoutException {
+      throw ApiException(statusCode: 408, message: 'Request timed out. Check your internet connection.');
+    }
   }
 
   Map<String, dynamic> _handleResponse(http.Response res) {

@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { getDB } = require('../../lib/db');
 const { authMiddleware } = require('../../lib/auth');
+const { calcLevel } = require('../../lib/levels');
 
 // GET /api/memory/progress - Get all memory verse progress for current user
 router.get('/progress', authMiddleware, async (req, res) => {
@@ -91,12 +92,7 @@ router.post('/progress', authMiddleware, async (req, res) => {
     // Check level update
     const user = await db.collection('users').findOne({ firebaseUid: req.user.uid });
     if (user) {
-      let newLevel = 'Seeker';
-      if (fullyMemorized >= 365) newLevel = 'Living Word';
-      else if (user.xp >= 5000) newLevel = 'Apostle';
-      else if (user.xp >= 2000) newLevel = 'Elder';
-      else if (user.xp >= 500) newLevel = 'Disciple';
-
+      const newLevel = calcLevel(user.xp, fullyMemorized);
       if (newLevel !== user.level) {
         await db.collection('users').updateOne(
           { firebaseUid: req.user.uid },

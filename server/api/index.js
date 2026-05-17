@@ -17,9 +17,17 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const http = require('http');
 
-const { connectDB } = require('../lib/db');
+const { connectDB, getDB } = require('../lib/db');
 const { initFirebase } = require('../lib/auth');
 const { initWebSocket } = require('../lib/websocket');
+
+// --- Environment Variable Validation ---
+const REQUIRED_ENV_VARS = ['MONGODB_URI', 'FIREBASE_SERVICE_ACCOUNT_BASE64'];
+const missing = REQUIRED_ENV_VARS.filter((v) => !process.env[v]);
+if (missing.length > 0 && !process.env.VERCEL) {
+  console.error(`❌ Missing required environment variables: ${missing.join(', ')}`);
+  process.exit(1);
+}
 
 // Route imports
 const authRoutes = require('./routes/auth');
@@ -40,7 +48,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '1mb' }));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -52,7 +60,7 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// AI generation has stricter rate limit
+// AI generation has stricter rate limit + larger body
 const aiLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 50, // 50 AI generations per hour per IP
@@ -60,12 +68,28 @@ const aiLimiter = rateLimit({
 });
 app.use('/api/questions/generate', aiLimiter);
 
+// DB readiness middleware — returns 503 if DB is not yet connected
+app.use('/api/', (req, res, next) => {
+  // Allow health check even without DB
+  if (req.path === '/health') return next();
+  try {
+    getDB();
+    next();
+  } catch {
+    res.status(503).json({ error: 'Service temporarily unavailable — database starting up' });
+  }
+});
+
 // === Health Check ===
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
+  let dbReady = false;
+  try { getDB(); dbReady = true; } catch { /* DB not ready */ }
+
+  res.status(dbReady ? 200 : 503).json({
+    status: dbReady ? 'ok' : 'starting',
     service: 'Holy Word Arena API',
     version: '1.0.0',
+    database: dbReady ? 'connected' : 'connecting',
     timestamp: new Date().toISOString(),
   });
 });
@@ -114,10 +138,10 @@ app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-// === Error Handler ===
-app.use((err, req, res, next) => {
+// === Error Handler (production-safe) ===
+app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err);
-  res.status(500).json({
+  res.status(err.status || 500).json({
     error: process.env.NODE_ENV === 'production'
       ? 'Internal server error'
       : err.message,

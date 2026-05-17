@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:holy_word_app/l10n/app_localizations.dart';
-import '../features/devotional/presentation/devotional_screen.dart';
-import '../features/bible/presentation/bible_tools_screen.dart';
-import '../features/community/presentation/community_screen.dart';
-import '../features/arena/presentation/arena_home_screen.dart';
+import 'features/devotional/presentation/devotional_screen.dart';
+import 'features/bible/presentation/bible_screen.dart';
+import 'features/arena/presentation/arena_home_screen.dart';
+import 'features/community/presentation/community_screen.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
@@ -14,77 +13,51 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
-  int _currentIndex = 0;
+  int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const DevotionalScreen(),
-    const BibleToolsScreen(),
-    const Center(child: Text('Worship & Music')), // Placeholder
-    const ArenaHomeScreen(), // Bible Arena - Game Zone
-    const CommunityScreen(),
+  final List<Widget> _screens = const [
+    DevotionalScreen(),
+    BibleScreen(),
+    ArenaHomeScreen(),
+    CommunityScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          height: 70,
-          elevation: 0,
-          backgroundColor: Colors.white,
-          indicatorColor:
-              Theme.of(context).colorScheme.primary.withOpacity(0.15),
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: [
-            NavigationDestination(
-              icon: const Icon(Icons.favorite_outline_rounded),
-              selectedIcon: Icon(Icons.favorite_rounded,
-                  color: Theme.of(context).colorScheme.primary),
-              label: 'Devotion',
-            ),
-            NavigationDestination(
-              icon: const Icon(
-                  Icons.menu_book_rounded), // Using generic book icon
-              selectedIcon: Icon(Icons.menu_book_rounded,
-                  color: Theme.of(context).colorScheme.primary),
-              label: AppLocalizations.of(context)!.bible,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.library_music_outlined),
-              selectedIcon: Icon(Icons.library_music_rounded,
-                  color: Theme.of(context).colorScheme.primary),
-              label: 'Worship',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.sports_esports_outlined),
-              selectedIcon: Icon(Icons.sports_esports_rounded,
-                  color: Theme.of(context).colorScheme.primary),
-              label: 'Arena',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.people_outline_rounded),
-              selectedIcon: Icon(Icons.people_rounded,
-                  color: Theme.of(context).colorScheme.primary),
-              label: 'Community',
-            ),
-          ],
-        ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.wb_sunny_outlined),
+            selectedIcon: Icon(Icons.wb_sunny),
+            label: 'Devotion',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Bible',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.sports_esports_outlined),
+            selectedIcon: Icon(Icons.sports_esports),
+            label: 'Arena',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.people_outlined),
+            selectedIcon: Icon(Icons.people),
+            label: 'Community',
+          ),
+        ],
       ),
     );
   }

@@ -1,130 +1,191 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 import '../../providers/arena_providers.dart';
+import '../arena_theme.dart';
 import 'battle_play_screen.dart';
 
 class BattleLobbyScreen extends ConsumerStatefulWidget {
-  final String battleId;
-  final bool isCreator;
-  const BattleLobbyScreen({super.key, required this.battleId, this.isCreator = false});
+  final String? battleId;
+  final String? inviteCode;
+
+  const BattleLobbyScreen({super.key, this.battleId, this.inviteCode});
 
   @override
   ConsumerState<BattleLobbyScreen> createState() => _BattleLobbyScreenState();
 }
 
-class _BattleLobbyScreenState extends ConsumerState<BattleLobbyScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseCtrl;
+class _BattleLobbyScreenState extends ConsumerState<BattleLobbyScreen> {
+  StreamSubscription<Map<String, dynamic>>? _wsSub;
   String _status = 'Connecting...';
-  int _playerCount = 1;
-  StreamSubscription? _wsSub;
+  String? _opponentName;
+  bool _isConnecting = true;
+  String? _resolvedBattleId;
 
   @override
   void initState() {
     super.initState();
-    _pulseCtrl = AnimationController(
-      vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
-    _connectAndJoin();
+    _connect();
+  }
+
+  Future<void> _connect() async {
+    try {
+      // If we have an invite code but no battle ID, join first
+      if (widget.inviteCode != null && widget.battleId == null) {
+        final api = ref.read(arenaApiClientProvider);
+        final result = await api.joinBattle(widget.inviteCode!);
+        _resolvedBattleId = result['battleId'] as String;
+        _opponentName = result['opponent']?['displayName'] as String?;
+      } else {
+        _resolvedBattleId = widget.battleId;
+      }
+
+      if (!mounted) return;
+
+      // Get Firebase ID token for WebSocket auth
+      final fbUser = fb.FirebaseAuth.instance.currentUser;
+      if (fbUser == null) {
+        setState(() {
+          _status = 'Not authenticated';
+          _isConnecting = false;
+        });
+        return;
+      }
+
+      final token = await fbUser.getIdToken(true);
+      if (token == null || !mounted) return;
+
+      final ws = ref.read(arenaWsClientProvider);
+      await ws.connect(token);
+
+      _wsSub = ws.messages.listen((msg) {
+        if (!mounted) return;
+
+        final event = msg['event'];
+        final data = msg['data'] ?? {};
+
+        switch (event) {
+          case 'auth:success':
+            ws.joinBattle(_resolvedBattleId!);
+            setState(() => _status = 'Waiting for opponent...');
+            break;
+
+          case 'auth:error':
+            setState(() {
+              _status = 'Authentication failed';
+              _isConnecting = false;
+            });
+            break;
+
+          case 'connection:failed':
+            setState(() {
+              _status = 'Connection failed. Please check your network.';
+              _isConnecting = false;
+            });
+            break;
+
+          case 'battle:player_joined':
+            setState(() {
+              _status = '${data['playerCount']}/2 players connected';
+            });
+            break;
+
+          case 'battle:ready_check':
+            ws.sendReady(_resolvedBattleId!);
+            setState(() => _status = 'Starting battle...');
+            break;
+
+          case 'battle:question':
+            // Battle started — navigate to play screen
+            _wsSub?.cancel();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BattlePlayScreen(battleId: _resolvedBattleId!),
+              ),
+            );
+            break;
+
+          case 'battle:player_disconnected':
+            setState(() {
+              _status = 'Opponent disconnected';
+              _isConnecting = false;
+            });
+            break;
+
+          case 'error':
+            setState(() {
+              _status = data['message'] ?? 'An error occurred';
+              _isConnecting = false;
+            });
+            break;
+        }
+      });
+
+      if (mounted) setState(() => _isConnecting = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _status = 'Failed to connect: ${e.toString().replaceAll('Exception: ', '')}';
+        _isConnecting = false;
+      });
+    }
   }
 
   @override
   void dispose() {
-    _pulseCtrl.dispose();
     _wsSub?.cancel();
+    ref.read(arenaWsClientProvider).disconnect();
     super.dispose();
-  }
-
-  Future<void> _connectAndJoin() async {
-    final ws = ref.read(arenaWsClientProvider);
-    final user = ref.read(arenaUserProvider).value;
-    if (user == null) return;
-
-    await ws.connect(user.firebaseUid);
-
-    _wsSub = ws.messages.listen((msg) {
-      final event = msg['event'];
-      final data = msg['data'] ?? {};
-
-      switch (event) {
-        case 'auth:success':
-          ws.joinBattle(widget.battleId);
-          setState(() => _status = 'Waiting for opponent...');
-          break;
-        case 'battle:player_joined':
-          setState(() {
-            _playerCount = data['playerCount'] ?? _playerCount;
-            if (_playerCount >= 2) _status = 'Opponent found!';
-          });
-          break;
-        case 'battle:ready_check':
-          setState(() => _status = 'Both players connected! Starting...');
-          ws.sendReady(widget.battleId);
-          break;
-        case 'battle:question':
-          // Battle started! Navigate to play screen
-          if (mounted) {
-            Navigator.pushReplacement(context, MaterialPageRoute(
-              builder: (_) => BattlePlayScreen(
-                battleId: widget.battleId, firstQuestion: data)));
-          }
-          break;
-        case 'error':
-          setState(() => _status = 'Error: ${data['message']}');
-          break;
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a2e),
+      backgroundColor: ArenaTheme.background,
       appBar: AppBar(
-        backgroundColor: Colors.transparent, elevation: 0,
-        title: const Text('Battle Lobby', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Battle Lobby'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Animated searching icon
-            AnimatedBuilder(
-              animation: _pulseCtrl,
-              builder: (ctx, child) => Transform.scale(
-                scale: 1.0 + _pulseCtrl.value * 0.1, child: child),
-              child: Container(
-                width: 120, height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4facfe), Color(0xFF00f2fe)]),
-                  boxShadow: [BoxShadow(
-                    color: const Color(0xFF4facfe).withOpacity(0.4),
-                    blurRadius: 30, spreadRadius: 5)],
-                ),
-                child: const Icon(Icons.search_rounded, color: Colors.white, size: 56),
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_isConnecting || _status.contains('Waiting'))
+                const CircularProgressIndicator(color: ArenaTheme.primary)
+              else
+                const Icon(Icons.sports_esports_rounded, color: ArenaTheme.primary, size: 64),
+              const SizedBox(height: 24),
+              Text(
+                _status,
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 32),
-            Text(_status, style: const TextStyle(
-              color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 12),
-            Text('$_playerCount/2 players',
-                style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 16)),
-            const SizedBox(height: 32),
-            if (_playerCount < 2)
-              const SizedBox(width: 200, child: LinearProgressIndicator(
-                backgroundColor: Colors.white12,
-                valueColor: AlwaysStoppedAnimation(Color(0xFF4facfe)),
-              )),
-            const SizedBox(height: 40),
-            TextButton.icon(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close, color: Colors.white54),
-              label: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-            ),
-          ],
+              if (_opponentName != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'vs $_opponentName',
+                  style: TextStyle(color: ArenaTheme.xpGold.withValues(alpha: 0.8), fontSize: 16),
+                ),
+              ],
+              if (_status.contains('failed') || _status.contains('disconnected')) ...[
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text('Back'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ArenaTheme.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
