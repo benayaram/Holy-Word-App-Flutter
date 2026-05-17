@@ -1,5 +1,15 @@
 // Seed Script - Load initial 500+ Bible quiz questions into MongoDB
 require('dotenv').config();
+const dns = require('dns');
+
+// Fix for MongoDB Atlas "querySrv ECONNREFUSED" error on some networks
+if (dns.setServers) {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+}
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
+
 const { connectDB, closeDB } = require('../lib/db');
 
 const questions = [

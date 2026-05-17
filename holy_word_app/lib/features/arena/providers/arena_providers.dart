@@ -47,7 +47,7 @@ class ArenaUserNotifier extends AsyncNotifier<ArenaUser?> {
     if (user == null) return null;
 
     final api = ref.read(arenaApiClientProvider);
-    final token = await user.getIdToken(true);
+    final token = await user.getIdToken();
     if (token == null) {
       throw Exception('Failed to obtain authentication token');
     }
@@ -65,7 +65,7 @@ class ArenaUserNotifier extends AsyncNotifier<ArenaUser?> {
     final fbUser = fb.FirebaseAuth.instance.currentUser;
     if (fbUser == null) throw Exception('Not authenticated');
 
-    final token = await fbUser.getIdToken(true);
+    final token = await fbUser.getIdToken();
     if (token == null) throw Exception('Failed to obtain authentication token');
     api.setAuthToken(token);
 

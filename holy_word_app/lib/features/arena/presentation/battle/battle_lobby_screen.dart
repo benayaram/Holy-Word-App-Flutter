@@ -53,7 +53,7 @@ class _BattleLobbyScreenState extends ConsumerState<BattleLobbyScreen> {
         return;
       }
 
-      final token = await fbUser.getIdToken(true);
+      final token = await fbUser.getIdToken();
       if (token == null || !mounted) return;
 
       final ws = ref.read(arenaWsClientProvider);

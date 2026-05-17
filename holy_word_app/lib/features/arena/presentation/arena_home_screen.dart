@@ -10,7 +10,7 @@ import 'scripture_memory/memory_home_screen.dart';
 import 'battle/battle_home_screen.dart';
 import 'sermon/sermon_home_screen.dart';
 import 'common/leaderboard_screen.dart';
-import '../common/profile_screen.dart';
+import 'common/profile_screen.dart';
 import '../../../../core/services/notification_service.dart';
 
 class ArenaHomeScreen extends ConsumerStatefulWidget {
