@@ -3,3 +3,4 @@ node_modules/
 .vercel
 *.log
 firebase-service-account.json
+service-account.json
